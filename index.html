@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>🎲 台語大富翁</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1a1a2e;--bg2:#16213e;--surface:#0f3460;
+  --gold:#f6c90e;--gold2:#b7791f;
+  --red:#fc8181;--blue:#63b3ed;--green:#68d391;--yellow:#faf089;--purple:#d6bcfa;--orange:#fbd38d;
+  --text:#f0e6d3;--muted:rgba(240,230,211,0.55);
+  --radius:12px;
+}
+body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+
+/* ── SETUP SCREEN ── */
+#setup{background:radial-gradient(ellipse at top,#1a1a2e 0%,#0f3460 100%);align-items:center;padding:20px;overflow-y:auto}
+.setup-box{width:100%;max-width:680px;padding-bottom:40px}
+.game-logo{text-align:center;margin-bottom:30px}
+.game-logo h1{font-size:2.5rem;font-weight:900;letter-spacing:2px;text-shadow:0 0 30px var(--gold);color:var(--gold)}
+.game-logo p{font-size:.95rem;color:var(--muted);margin-top:6px}
+.setup-section{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.setup-section h3{font-size:.9rem;color:var(--gold);margin-bottom:14px;letter-spacing:1px;text-transform:uppercase}
+.field-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.field-row label{font-size:.88rem;color:var(--muted);min-width:70px;flex-shrink:0}
+.field-input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 14px;color:var(--text);font-size:.95rem;width:100%;outline:none;transition:border-color .2s}
+.field-input:focus{border-color:var(--gold)}
+.team-count-btns{display:flex;gap:8px}
+.count-btn{width:44px;height:44px;border-radius:10px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:var(--text);font-size:1.2rem;font-weight:700;cursor:pointer;transition:all .2s}
+.count-btn.sel{border-color:var(--gold);background:rgba(246,201,14,.15);color:var(--gold)}
+
+/* Team cards */
+.team-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.team-cards{grid-template-columns:1fr}}
+.team-card{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.12);border-radius:10px;padding:14px;transition:border-color .2s}
+.team-card.hidden{display:none}
+.team-card-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.team-dot{width:14px;height:14px;border-radius:50%}
+.team-name-input{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.2);color:var(--text);font-size:.95rem;font-weight:600;width:100%;outline:none;padding:2px 0}
+.char-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.char-opt{width:54px;height:54px;border-radius:10px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .15s;flex-shrink:0}
+.char-opt:hover{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.1)}
+.char-opt.sel{border-color:var(--gold);background:rgba(246,201,14,.18)}
+.char-opt .ce{font-size:1.6rem;line-height:1}
+.char-opt .cn{font-size:.6rem;color:var(--muted)}
+
+.load-section{background:rgba(246,201,14,.06);border:1px solid rgba(246,201,14,.2);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.load-section h3{font-size:.85rem;color:var(--gold);margin-bottom:10px}
+.save-list{display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto}
+.save-item{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.06);border-radius:8px;padding:8px 12px;font-size:.85rem;cursor:pointer;transition:background .15s}
+.save-item:hover{background:rgba(255,255,255,.12)}
+.save-item .si-info{display:flex;flex-direction:column;gap:2px}
+.save-item .si-name{font-weight:600;color:var(--text)}
+.save-item .si-time{font-size:.75rem;color:var(--muted)}
+.save-item .si-resume{padding:4px 12px;background:var(--gold);color:#1a1a2e;border-radius:20px;font-size:.78rem;font-weight:700;border:none;cursor:pointer}
+
+.btn-start{width:100%;padding:16px;background:linear-gradient(135deg,#f6c90e,#ed8936);border:none;border-radius:var(--radius);color:#1a1a2e;font-size:1.15rem;font-weight:900;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 20px rgba(246,201,14,.4);transition:all .2s;margin-top:8px}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(246,201,14,.5)}
+.btn-start:active{transform:translateY(0)}
+
+/* ── GAME SCREEN ── */
+#game{background:var(--bg);flex-direction:column;padding:0}
+.game-header{background:var(--bg2);border-bottom:1px solid rgba(255,255,255,.1);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.game-header .gh-left h2{font-size:1rem;font-weight:700;color:var(--gold)}
+.game-header .gh-left p{font-size:.75rem;color:var(--muted);margin-top:1px}
+.gh-btns{display:flex;gap:8px;align-items:center}
+.gh-btn{padding:6px 14px;border:1px solid rgba(255,255,255,.2);border-radius:20px;background:transparent;color:var(--text);font-size:.8rem;cursor:pointer;transition:all .15s}
+.gh-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+.game-body{display:flex;flex:1;overflow:hidden;gap:0}
+@media(max-width:900px){.game-body{flex-direction:column;overflow-y:auto}}
+
+/* ── BOARD ── */
+.board-wrap{flex:1;padding:12px;display:flex;align-items:center;justify-content:center;min-height:0;overflow:auto}
+.board{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(4,1fr);gap:5px;width:100%;max-width:520px;aspect-ratio:5/4}
+.sq{border-radius:8px;padding:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:default;border:2px solid rgba(255,255,255,.08);transition:all .2s;min-width:0}
+.sq:hover{border-color:rgba(255,255,255,.35);transform:scale(1.03);z-index:2}
+.sq .sq-num{position:absolute;top:3px;left:6px;font-size:.6rem;font-weight:700;opacity:.65;line-height:1}
+.sq .sq-emoji{font-size:1.35rem;line-height:1;margin-bottom:2px}
+.sq .sq-name{font-size:.58rem;text-align:center;line-height:1.2;opacity:.85;font-weight:600}
+.sq .sq-tokens{position:absolute;bottom:3px;right:3px;display:flex;gap:2px;flex-wrap:wrap;max-width:80%;justify-content:flex-end}
+.token{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;border:2px solid rgba(255,255,255,.8);box-shadow:0 1px 4px rgba(0,0,0,.4);flex-shrink:0}
+.sq.highlight-move{animation:sqpulse .4s ease}
+@keyframes sqpulse{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+.sq.current-sq{box-shadow:0 0 0 3px var(--gold),0 0 12px rgba(246,201,14,.5)}
+
+/* Square type colors */
+.sq-start{background:linear-gradient(135deg,#276749,#38a169)}
+.sq-end  {background:linear-gradient(135deg,#744210,#c05621)}
+.sq-task {background:linear-gradient(135deg,#1a365d,#2b6cb0)}
+.sq-song {background:linear-gradient(135deg,#652b19,#c05621)}
+.sq-riddle{background:linear-gradient(135deg,#44337a,#6b46c1)}
+.sq-chance{background:linear-gradient(135deg,#744210,#d69e2e)}
+.sq-fortune{background:linear-gradient(135deg,#742a2a,#c53030)}
+.sq-rest {background:linear-gradient(135deg,#2d3748,#4a5568)}
+
+/* ── SIDE PANEL ── */
+.side{width:300px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,.08);background:var(--bg2);overflow-y:auto;padding:14px}
+@media(max-width:900px){.side{width:100%;border-left:none;border-top:1px solid rgba(255,255,255,.08)}}
+
+/* Current turn banner */
+.turn-banner{background:linear-gradient(135deg,rgba(246,201,14,.12),rgba(246,201,14,.06));border:1px solid rgba(246,201,14,.3);border-radius:10px;padding:12px;text-align:center;margin-bottom:14px}
+.turn-banner .tb-label{font-size:.72rem;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.turn-banner .tb-team{font-size:1.3rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px}
+.turn-banner .tb-skip{font-size:.78rem;color:var(--red);background:rgba(252,129,129,.12);border-radius:20px;padding:2px 10px;margin-top:4px;display:inline-block}
+
+/* Dice area */
+.dice-area{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:14px}
+.dice-scene{perspective:600px;width:90px;height:90px;display:flex;align-items:center;justify-content:center}
+.dice{width:80px;height:80px;position:relative;transform-style:preserve-3d;transform:rotateX(0deg) rotateY(0deg);transition:transform 0.1s}
+.dice.rolling{animation:diceroll 1.4s ease-in-out forwards}
+@keyframes diceroll{
+  0%  {transform:rotateX(0deg) rotateY(0deg)}
+  15% {transform:rotateX(180deg) rotateY(90deg)}
+  30% {transform:rotateX(360deg) rotateY(270deg)}
+  50% {transform:rotateX(180deg) rotateY(540deg)}
+  70% {transform:rotateX(540deg) rotateY(360deg)}
+  85% {transform:rotateX(720deg) rotateY(630deg)}
+  100%{transform:var(--dice-final,rotateX(0deg) rotateY(0deg))}
+}
+.die-face{position:absolute;width:80px;height:80px;border-radius:12px;background:#d32f2f;border:3px solid #8b0000;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;box-shadow:inset 0 0 10px rgba(0,0,0,.3)}
+.face-front {transform:translateZ(40px)}
+.face-back  {transform:rotateY(180deg) translateZ(40px)}
+.face-right {transform:rotateY(90deg) translateZ(40px)}
+.face-left  {transform:rotateY(-90deg) translateZ(40px)}
+.face-top   {transform:rotateX(-90deg) translateZ(40px)}
+.face-bottom{transform:rotateX(90deg) translateZ(40px)}
+.pips{position:relative;width:56px;height:56px}
+.pip{width:12px;height:12px;background:#fff;border-radius:50%;position:absolute;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.pip.c {top:50%;left:50%;transform:translate(-50%,-50%)}
+.pip.tl{top:4px;left:4px}
+.pip.tr{top:4px;right:4px}
+.pip.ml{top:50%;left:4px;transform:translateY(-50%)}
+.pip.mr{top:50%;right:4px;transform:translateY(-50%)}
+.pip.bl{bottom:4px;left:4px}
+.pip.br{bottom:4px;right:4px}
+
+.dice-result-num{font-size:2.5rem;font-weight:900;color:var(--gold);text-shadow:0 0 20px rgba(246,201,14,.6);min-height:3rem;display:flex;align-items:center;justify-content:center}
+.btn-roll{padding:12px 32px;background:linear-gradient(135deg,#c53030,#e53e3e);border:none;border-radius:30px;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(229,62,62,.4);transition:all .2s;letter-spacing:1px}
+.btn-roll:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 22px rgba(229,62,62,.5)}
+.btn-roll:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* Scoreboard */
+.scoreboard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;margin-bottom:14px}
+.scoreboard h4{font-size:.75rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+.score-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin-bottom:4px;transition:background .2s}
+.score-row.is-current{background:rgba(246,201,14,.1);border:1px solid rgba(246,201,14,.25)}
+.score-row .sr-emoji{font-size:1.3rem;width:28px;text-align:center}
+.score-row .sr-info{flex:1;min-width:0}
+.score-row .sr-name{font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.score-row .sr-pos{font-size:.72rem;color:var(--muted)}
+.score-row .sr-score{font-size:1.05rem;font-weight:800;color:var(--gold)}
+
+/* History log */
+.game-log{flex:1;min-height:0}
+.game-log h4{font-size:.75rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.log-list{font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:3px;max-height:120px;overflow-y:auto}
+.log-item{padding:4px 8px;background:rgba(255,255,255,.04);border-radius:6px;line-height:1.4}
+
+/* ── MODALS ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;backdrop-filter:blur(4px)}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--bg2);border:1px solid rgba(255,255,255,.15);border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal-head{padding:20px 20px 0;text-align:center}
+.modal-head .mh-emoji{font-size:3rem;line-height:1;margin-bottom:8px}
+.modal-head .mh-badge{display:inline-block;padding:3px 14px;border-radius:20px;font-size:.75rem;font-weight:700;margin-bottom:8px;letter-spacing:1px}
+.modal-head h2{font-size:1.3rem;font-weight:800;margin-bottom:6px}
+.modal-head .mh-team{font-size:.85rem;color:var(--muted);margin-bottom:0}
+.modal-body{padding:16px 20px}
+.modal-desc{background:rgba(255,255,255,.06);border-radius:10px;padding:14px;font-size:.95rem;line-height:1.7;white-space:pre-wrap;margin-bottom:12px;border:1px solid rgba(255,255,255,.1)}
+.modal-pts{text-align:center;font-size:.85rem;color:var(--gold);margin-bottom:16px}
+.modal-pts span{font-size:1.2rem;font-weight:800}
+.modal-actions{display:flex;gap:10px}
+.btn-complete{flex:1;padding:13px;background:linear-gradient(135deg,#276749,#38a169);border:none;border-radius:10px;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-complete:hover{filter:brightness(1.1)}
+.btn-skip{flex:1;padding:13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:10px;color:var(--muted);font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-skip:hover{border-color:rgba(255,255,255,.4);color:var(--text)}
+.task-timer{text-align:center;margin-bottom:12px}
+.timer-display{font-size:2rem;font-weight:900;color:var(--gold);font-variant-numeric:tabular-nums}
+.timer-display.warn{color:var(--red);animation:blink .5s ease infinite alternate}
+@keyframes blink{from{opacity:1}to{opacity:.4}}
+.timer-btns{display:flex;gap:8px;justify-content:center;margin-top:6px}
+.timer-btn{padding:5px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.2);background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;transition:all .15s}
+.timer-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* Card modal */
+.card-modal .modal{border:2px solid}
+.card-modal.chance-modal .modal{border-color:var(--gold);box-shadow:0 0 40px rgba(246,201,14,.3)}
+.card-modal.fortune-modal .modal{border-color:var(--red);box-shadow:0 0 40px rgba(252,129,129,.3)}
+.card-content{background:rgba(255,255,255,.06);border-radius:12px;padding:20px;text-align:center;margin:16px 20px;font-size:1.05rem;line-height:1.7;white-space:pre-wrap;font-weight:600;border:1px solid rgba(255,255,255,.1)}
+.card-effect{text-align:center;font-size:.85rem;color:var(--muted);margin:0 20px 16px;padding:8px;background:rgba(255,255,255,.04);border-radius:8px}
+.btn-card-ok{display:block;width:calc(100% - 40px);margin:0 20px 20px;padding:13px;background:linear-gradient(135deg,#f6c90e,#ed8936);border:none;border-radius:10px;color:#1a1a2e;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s}
+.btn-card-ok:hover{filter:brightness(1.05)}
+
+/* Settings modal */
+.settings-form{padding:0 20px 20px}
+.settings-form label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:5px;margin-top:12px}
+.settings-form .field-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15)}
+.settings-form .hint{font-size:.74rem;color:var(--muted);margin-top:5px;line-height:1.5}
+.settings-btns{display:flex;gap:8px;margin-top:16px}
+.btn-save-settings{flex:1;padding:10px;background:linear-gradient(135deg,#f6c90e,#ed8936);border:none;border-radius:8px;color:#1a1a2e;font-weight:700;font-size:.9rem;cursor:pointer}
+.btn-cancel-modal{padding:10px 20px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:transparent;color:var(--muted);font-size:.9rem;cursor:pointer}
+
+/* Save modal */
+.save-form{padding:0 20px 20px}
+.save-form label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:5px;margin-top:12px}
+.save-status{text-align:center;padding:10px;font-size:.9rem;margin-top:10px;border-radius:8px}
+.save-status.ok{background:rgba(104,211,145,.15);color:var(--green)}
+.save-status.err{background:rgba(252,129,129,.15);color:var(--red)}
+
+/* Notification toast */
+#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:30px;font-size:.88rem;font-weight:600;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+
+/* GAMEOVER */
+#gameover{background:radial-gradient(ellipse at top,#1a1a2e 0%,#0f3460 100%);align-items:center;justify-content:center;padding:20px;text-align:center}
+.go-box{max-width:480px;width:100%}
+.go-trophy{font-size:5rem;line-height:1;margin-bottom:16px;animation:bounce 1s ease infinite alternate}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+.go-title{font-size:2rem;font-weight:900;color:var(--gold);margin-bottom:6px}
+.go-sub{font-size:.95rem;color:var(--muted);margin-bottom:30px}
+.rankings{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius);padding:16px;margin-bottom:24px}
+.rankings h3{font-size:.85rem;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px}
+.rank-row{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;margin-bottom:6px}
+.rank-row:nth-child(2){background:rgba(246,201,14,.12);border:1px solid rgba(246,201,14,.3)}
+.rank-row:nth-child(3){background:rgba(192,192,192,.08)}
+.rank-row:nth-child(4){background:rgba(205,127,50,.08)}
+.rank-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;flex-shrink:0}
+.rank-row:nth-child(2) .rank-num{background:var(--gold);color:#1a1a2e}
+.rank-row:nth-child(3) .rank-num{background:#aaa;color:#fff}
+.rank-row:nth-child(4) .rank-num{background:#cd7f32;color:#fff}
+.rank-row .rank-emoji{font-size:1.6rem;width:32px}
+.rank-row .rank-info{flex:1;text-align:left}
+.rank-row .rank-name{font-weight:700;font-size:.95rem}
+.rank-row .rank-detail{font-size:.75rem;color:var(--muted)}
+.rank-row .rank-score{font-size:1.3rem;font-weight:900;color:var(--gold)}
+.go-btns{display:flex;flex-direction:column;gap:10px}
+.btn-newgame{padding:14px;background:linear-gradient(135deg,#f6c90e,#ed8936);border:none;border-radius:var(--radius);color:#1a1a2e;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s}
+.btn-newgame:hover{filter:brightness(1.05)}
+.btn-again{padding:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:var(--radius);color:var(--text);font-size:.95rem;cursor:pointer}
+
+/* Card flip animation */
+.card-flip-wrap{perspective:600px;width:160px;height:220px;margin:16px auto}
+.card-flip{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .7s ease}
+.card-flip.flipped{transform:rotateY(180deg)}
+.card-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.card-front{background:linear-gradient(135deg,#2d3748,#4a5568);border:2px solid rgba(255,255,255,.15)}
+.card-front .cf-emoji{font-size:3rem}
+.card-front .cf-label{font-size:1rem;font-weight:700}
+.card-back{transform:rotateY(180deg);background:linear-gradient(135deg,#1a365d,#2b6cb0);border:2px solid rgba(99,179,237,.4)}
+.card-back.chance-back{background:linear-gradient(135deg,#744210,#d69e2e);border-color:rgba(246,201,14,.4)}
+.card-back.fortune-back{background:linear-gradient(135deg,#742a2a,#c53030);border-color:rgba(252,129,129,.4)}
+.card-back .cb-emoji{font-size:2.5rem}
+.card-back .cb-text{font-size:.88rem;font-weight:700;text-align:center;padding:0 12px;line-height:1.5}
+
+/* Mobile tweaks */
+@media(max-width:900px){
+  .board-wrap{min-height:320px}
+  .board{max-width:100%}
+  .sq .sq-emoji{font-size:1.1rem}
+  .sq .sq-name{font-size:.5rem}
+}
+@media(max-width:480px){
+  .game-logo h1{font-size:1.8rem}
+  .setup-section{padding:14px}
+  .modal{border-radius:12px}
+  .side{padding:10px}
+  .token{width:14px;height:14px;font-size:.55rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     SETUP SCREEN
+══════════════════════════════════ -->
+<div id="setup" class="screen active">
+<div class="setup-box">
+  <div class="game-logo">
+    <h1>🎲 台語大富翁</h1>
+    <p>台語課互動遊戲　－　說台語、學文化、玩得開心！</p>
+  </div>
+
+  <div class="setup-section">
+    <h3>基本設定</h3>
+    <div class="field-row">
+      <label>班　級</label>
+      <input class="field-input" id="classId" type="text" placeholder="例如：901班">
+    </div>
+    <div class="field-row">
+      <label>組別數</label>
+      <div class="team-count-btns">
+        <button class="count-btn sel" onclick="setTeamCount(1)">1</button>
+        <button class="count-btn" onclick="setTeamCount(2)">2</button>
+        <button class="count-btn" onclick="setTeamCount(3)">3</button>
+        <button class="count-btn" onclick="setTeamCount(4)">4</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="setup-section">
+    <h3>各組設定</h3>
+    <div class="team-cards" id="team-cards"></div>
+  </div>
+
+  <div class="load-section" id="load-section" style="display:none">
+    <h3>📂 讀取上次進度</h3>
+    <div class="save-list" id="save-list"></div>
+  </div>
+
+  <button class="btn-start" onclick="startGame()">🚀 開始遊戲！</button>
+</div>
+</div>
+
+<!-- ══════════════════════════════════
+     GAME SCREEN
+══════════════════════════════════ -->
+<div id="game" class="screen">
+  <div class="game-header">
+    <div class="gh-left">
+      <h2 id="gh-class">台語大富翁</h2>
+      <p id="gh-sub">導師操作模式</p>
+    </div>
+    <div class="gh-btns">
+      <button class="gh-btn" onclick="openSaveModal()">💾 儲存進度</button>
+      <button class="gh-btn" onclick="openSettingsModal()">⚙ 設定</button>
+      <button class="gh-btn" onclick="if(confirm('確定要返回設定畫面？'))location.reload()">← 返回</button>
+    </div>
+  </div>
+
+  <div class="game-body">
+    <!-- Board -->
+    <div class="board-wrap">
+      <div class="board" id="board"></div>
+    </div>
+
+    <!-- Side panel -->
+    <div class="side">
+      <!-- Current turn -->
+      <div class="turn-banner" id="turn-banner">
+        <div class="tb-label">目前輪到</div>
+        <div class="tb-team" id="tb-team">－</div>
+        <div class="tb-skip" id="tb-skip" style="display:none"></div>
+      </div>
+
+      <!-- Dice -->
+      <div class="dice-area">
+        <div class="dice-scene">
+          <div class="dice" id="dice">
+            <!-- Face 1 (front) -->
+            <div class="die-face face-front">
+              <div class="pips"><div class="pip c"></div></div>
+            </div>
+            <!-- Face 2 (right): shows when rotated left -90deg -->
+            <div class="die-face face-right">
+              <div class="pips"><div class="pip tl"></div><div class="pip br"></div></div>
+            </div>
+            <!-- Face 3 (top): shows when rotated down 90deg -->
+            <div class="die-face face-top">
+              <div class="pips"><div class="pip tl"></div><div class="pip c"></div><div class="pip br"></div></div>
+            </div>
+            <!-- Decorative back/left/bottom faces -->
+            <div class="die-face face-back" style="background:#b71c1c">
+              <div class="pips"><div class="pip tl"></div><div class="pip tr"></div><div class="pip ml"></div><div class="pip mr"></div></div>
+            </div>
+            <div class="die-face face-left" style="background:#c62828">
+              <div class="pips"><div class="pip tl"></div><div class="pip br"></div><div class="pip tr"></div><div class="pip bl"></div><div class="pip c"></div></div>
+            </div>
+            <div class="die-face face-bottom" style="background:#b71c1c">
+              <div class="pips"><div class="pip tl"></div><div class="pip br"></div><div class="pip tr"></div><div class="pip bl"></div><div class="pip ml"></div><div class="pip mr"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="dice-result-num" id="dice-num">🎲</div>
+        <button class="btn-roll" id="roll-btn" onclick="rollDice()">擲　骰　子</button>
+      </div>
+
+      <!-- Scoreboard -->
+      <div class="scoreboard">
+        <h4>積分排名</h4>
+        <div id="scoreboard"></div>
+      </div>
+
+      <!-- Log -->
+      <div class="game-log">
+        <h4>遊戲記錄</h4>
+        <div class="log-list" id="log-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     GAME OVER SCREEN
+══════════════════════════════════ -->
+<div id="gameover" class="screen">
+  <div class="go-box">
+    <div class="go-trophy">🏆</div>
+    <div class="go-title" id="go-title">遊戲結束！</div>
+    <div class="go-sub" id="go-sub">感謝大家的精彩表現！</div>
+    <div class="rankings" id="go-rankings"></div>
+    <div class="go-btns">
+      <button class="btn-again" onclick="restartGame()">🔁 同班再玩一次</button>
+      <button class="btn-newgame" onclick="location.reload()">🏠 返回首頁</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     MODALS
+══════════════════════════════════ -->
+
+<!-- Task Modal -->
+<div class="modal-overlay hidden" id="task-modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="mh-emoji" id="tm-emoji"></div>
+      <div class="mh-badge" id="tm-badge"></div>
+      <h2 id="tm-title"></h2>
+      <p class="mh-team" id="tm-team"></p>
+    </div>
+    <div class="modal-body">
+      <div class="task-timer" id="task-timer" style="display:none">
+        <div class="timer-display" id="timer-display">60</div>
+        <div class="timer-btns">
+          <button class="timer-btn" onclick="startTimer(60)">60秒</button>
+          <button class="timer-btn" onclick="startTimer(30)">30秒</button>
+          <button class="timer-btn" onclick="stopTimer()">停止</button>
+        </div>
+      </div>
+      <div class="modal-desc" id="tm-desc"></div>
+      <div class="modal-pts" id="tm-pts"></div>
+      <div class="modal-actions">
+        <button class="btn-complete" onclick="completeTask()">✓ 完成！得分</button>
+        <button class="btn-skip" onclick="skipTask()">✗ 跳過</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Card Modal -->
+<div class="modal-overlay hidden card-modal" id="card-modal-overlay">
+  <div class="modal">
+    <div class="modal-head" style="padding-top:20px">
+      <div class="mh-badge" id="cm-badge"></div>
+      <h2 id="cm-title"></h2>
+    </div>
+    <div class="card-flip-wrap">
+      <div class="card-flip" id="card-flip">
+        <div class="card-face card-front">
+          <div class="cf-emoji" id="cf-emoji">🃏</div>
+          <div class="cf-label" id="cf-label">翻開看看</div>
+        </div>
+        <div class="card-face card-back" id="card-back">
+          <div class="cb-emoji" id="cb-emoji"></div>
+          <div class="cb-text" id="cb-text"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-content" id="cm-content" style="display:none"></div>
+    <div class="card-effect" id="cm-effect" style="display:none"></div>
+    <button class="btn-card-ok" id="cm-ok" onclick="confirmCard()" style="display:none">確認，繼續遊戲</button>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay hidden" id="settings-modal-overlay">
+  <div class="modal">
+    <div class="modal-head" style="padding-top:20px">
+      <h2>⚙ 遊戲設定</h2>
+    </div>
+    <div class="settings-form">
+      <label>Google Apps Script 網址（選填）</label>
+      <input class="field-input" id="cfg-url" type="url" placeholder="https://script.google.com/macros/s/...">
+      <p class="hint">設定後可使用 Google 試算表自訂題目及儲存進度。<br>請參閱 apps-script.js 設定說明。</p>
+      <label style="margin-top:16px;display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="cfg-sound" style="accent-color:var(--gold);width:16px;height:16px">
+        <span style="font-size:.88rem;color:var(--text)">音效</span>
+      </label>
+      <label style="margin-top:10px;display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="cfg-timer" style="accent-color:var(--gold);width:16px;height:16px">
+        <span style="font-size:.88rem;color:var(--text)">自動顯示計時器</span>
+      </label>
+      <div class="settings-btns">
+        <button class="btn-save-settings" onclick="saveSettings()">儲存設定</button>
+        <button class="btn-cancel-modal" onclick="closeAllModals()">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Save Modal -->
+<div class="modal-overlay hidden" id="save-modal-overlay">
+  <div class="modal">
+    <div class="modal-head" style="padding-top:20px">
+      <h2>💾 儲存進度</h2>
+    </div>
+    <div class="save-form">
+      <label>儲存名稱</label>
+      <input class="field-input" id="save-name" type="text" placeholder="例如：第一節課">
+      <div id="save-status"></div>
+      <div class="settings-btns" style="margin-top:16px">
+        <button class="btn-save-settings" onclick="doSave()">儲存</button>
+        <button class="btn-cancel-modal" onclick="closeAllModals()">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bonus Task Modal (from Fortune card) -->
+<div class="modal-overlay hidden" id="bonus-modal-overlay">
+  <div class="modal">
+    <div class="modal-head" style="padding-top:20px">
+      <div class="mh-emoji">🎤</div>
+      <h2>特別任務！</h2>
+      <p class="mh-team" id="bm-team"></p>
+    </div>
+    <div class="modal-body">
+      <div class="modal-desc">現在用台語唱一句歌詞！\n成功完成可獲得 20 分！</div>
+      <div class="modal-actions" style="margin-top:12px">
+        <button class="btn-complete" onclick="completeBonusTask()">✓ 唱出來了！+20分</button>
+        <button class="btn-skip" onclick="skipBonusTask()">✗ 跳過</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════
+
+const CHARS = [
+  {id:'lion',   name:'阿獅', emoji:'🦁', color:'#fc8181'},
+  {id:'dragon', name:'小龍', emoji:'🐲', color:'#63b3ed'},
+  {id:'tiger',  name:'虎仔', emoji:'🐯', color:'#68d391'},
+  {id:'panda',  name:'貓熊', emoji:'🐼', color:'#faf089'},
+  {id:'fox',    name:'狐狸', emoji:'🦊', color:'#fbd38d'},
+  {id:'rabbit', name:'兔兔', emoji:'🐰', color:'#d6bcfa'},
+];
+
+const TEAM_COLORS = ['#fc8181','#63b3ed','#68d391','#faf089'];
+
+const SQUARES = [
+  {n:1,  type:'start',   name:'起點',      emoji:'🚀', desc:'遊戲開始！\n大家一起說：\n「逐家好！咱來學台語！」\n（Tak-ke hó! Lán lâi o̍h Tâi-gí!）', pts:0,  color:'#276749'},
+  {n:2,  type:'task',    name:'台語俚語',   emoji:'💬', desc:'說出 3 個台語俚語！\n例如：\n‧ 食果子，拜樹頭\n‧ 囝仔人有耳無喙\n‧ 放牛食草\n說出來並解釋意思！', pts:10, color:'#2b6cb0'},
+  {n:3,  type:'song',    name:'台語歌謠',   emoji:'🎵', desc:'用台語唱一首歌謠！\n至少完整唱 4 句\n（例如：一隻鳥仔哮救救、農村曲、望春風）\n大聲唱出來！', pts:15, color:'#c05621'},
+  {n:4,  type:'chance',  name:'機　會',     emoji:'⭐', desc:'抽一張機會卡！', pts:0,  color:'#b7791f'},
+  {n:5,  type:'riddle',  name:'台語猜謎',   emoji:'🔍', desc:'謎題：\n「一粒珠，圓閣圓，\n大人囡仔攏愛看。」\n用台語說出謎底！\n（答案：月娘 / 月亮）', pts:10, color:'#6b46c1'},
+  {n:6,  type:'task',    name:'台語繞口令', emoji:'👄', desc:'說台語繞口令，說 3 遍！\n\n「是獅是虎是獅虎，\n 是虎是獅是虎獅」\n\n（Sī sai sī hó͘ sī sai-hó͘，\n Sī hó͘ sī sai sī hó͘-sai）', pts:15, color:'#2b6cb0'},
+  {n:7,  type:'fortune', name:'命　運',     emoji:'🎴', desc:'抽一張命運卡！', pts:0,  color:'#c53030'},
+  {n:8,  type:'task',    name:'台語成語',   emoji:'📚', desc:'說出一個台語成語\n並解釋意思！\n例如：\n‧ 一人一家代（各人自掃門前雪）\n‧ 毋通糊塗（不可以馬虎）\n‧ 相招去散步（呼朋引伴）', pts:10, color:'#2b6cb0'},
+  {n:9,  type:'rest',    name:'休息一下',   emoji:'😴', desc:'休息一回合！\n下一次輪到你時跳過。\n（但可以為其他組加油！）\n\n大家一起用台語說：\n「好啦！休息一下！」', pts:0,  color:'#4a5568'},
+  {n:10, type:'task',    name:'台語數數',   emoji:'🔢', desc:'用台語從 1 數到 20！\n一、二、三、四、五、\n六、七、八、九、十、\n十一…二十\n念得流暢才算過關！', pts:10, color:'#2b6cb0'},
+  {n:11, type:'chance',  name:'機　會',     emoji:'⭐', desc:'抽一張機會卡！', pts:0,  color:'#b7791f'},
+  {n:12, type:'task',    name:'台語自我介紹',emoji:'👋', desc:'用台語完整做自我介紹！\n要包含：\n‧ 名字\n‧ 年紀\n‧ 就讀學校/班級\n‧ 一個喜好或特長\n說得愈流暢分數愈高！', pts:10, color:'#2b6cb0'},
+  {n:13, type:'song',    name:'台語童謠',   emoji:'🎶', desc:'表演台語童謠！\n至少唱完一個完整段落\n推薦：\n‧ 一隻鳥仔哮救救\n‧ 天黑黑\n‧ 丟丟銅仔\n‧ 白鷺鷥', pts:15, color:'#c05621'},
+  {n:14, type:'fortune', name:'命　運',     emoji:'🎴', desc:'抽一張命運卡！', pts:0,  color:'#c53030'},
+  {n:15, type:'task',    name:'台語方向',   emoji:'🧭', desc:'用台語說出所有方向！\n‧ 東、西、南、北\n‧ 左、右、前、後\n‧ 頂（上面）、下（下面）\n全部說正確才算！', pts:10, color:'#2b6cb0'},
+  {n:16, type:'task',    name:'台語食物',   emoji:'🍜', desc:'用台語說出 5 種\n傳統台灣食物！\n例如：\n‧ 牛肉麵（gû-bah-mī）\n‧ 滷肉飯（lū-bah-pn̄g）\n‧ 珍珠奶茶、鹽酥雞…', pts:10, color:'#2b6cb0'},
+  {n:17, type:'chance',  name:'機　會',     emoji:'⭐', desc:'抽一張機會卡！', pts:0,  color:'#b7791f'},
+  {n:18, type:'task',    name:'台語動物',   emoji:'🐾', desc:'用台語說出 5 種動物名稱\n並模仿牠們的叫聲！\n例如：\n‧ 狗（káu）→ 汪汪\n‧ 貓（niau）→ 喵喵\n‧ 雞（ke）→ 咕咕咕', pts:10, color:'#2b6cb0'},
+  {n:19, type:'fortune', name:'命　運',     emoji:'🎴', desc:'抽一張命運卡！', pts:0,  color:'#c53030'},
+  {n:20, type:'end',     name:'終　點',     emoji:'🏆', desc:'恭喜到達終點！\n你是台語高手！\n\n請用台語說：\n「多謝！咱攏是台語高手！」\n大家鼓掌！', pts:20, color:'#b7791f'},
+];
+
+const CHANCE_CARDS = [
+  {emoji:'🍀', text:'幸運之神眷顧！\n前進 2 格！',        effect:'move',       val:2,  label:'前進 2 格'},
+  {emoji:'⭐', text:'台語說得真棒！\n獲得 15 分！',        effect:'score',      val:15, label:'獲得 15 分'},
+  {emoji:'🎲', text:'再來一次！\n可以再擲一次骰子！',      effect:'extra_roll', val:1,  label:'再擲一次骰子'},
+  {emoji:'🌟', text:'老師嘉獎！\n全部組別各獲得 5 分！',   effect:'all_score',  val:5,  label:'全組各得 5 分'},
+  {emoji:'🚀', text:'發現捷徑！\n直接前進到第 15 格！',    effect:'goto',       val:15, label:'傳送到第 15 格'},
+  {emoji:'🤝', text:'同學互助！\n選任一組也獲得 10 分！', effect:'give_score', val:10, label:'贈送 10 分給一組'},
+];
+
+const FORTUNE_CARDS = [
+  {emoji:'😰', text:'走錯路了！\n後退 2 格！',           effect:'move',        val:-2, label:'後退 2 格'},
+  {emoji:'😅', text:'台語說錯了！\n失去 5 分！',          effect:'score',       val:-5, label:'失去 5 分'},
+  {emoji:'⏸',  text:'需要多加練習！\n跳過下一回合！',     effect:'skip',        val:1,  label:'跳過一回合'},
+  {emoji:'🔀', text:'命運大逆轉！\n與目前第一名交換位置！',effect:'swap_first',  val:0,  label:'與第一名換位置'},
+  {emoji:'🎉', text:'意外的好事！\n前進 3 格！',          effect:'move',        val:3,  label:'前進 3 格'},
+  {emoji:'🎤', text:'特別任務！\n用台語唱一句歌詞\n成功得 20 分！', effect:'bonus_task', val:20, label:'特別任務'},
+];
+
+// ══════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════
+
+let G = {
+  classId: '',
+  teamCount: 1,
+  teams: [],
+  currentTeam: 0,
+  squares: [...SQUARES],
+  chanceCards: [...CHANCE_CARDS],
+  fortuneCards: [...FORTUNE_CARDS],
+  phase: 'roll',    // 'roll' | 'task' | 'card' | 'end'
+  rolling: false,
+  pendingCard: null,
+  log: [],
+  cfg: {
+    url: localStorage.getItem('cfg_url') || '',
+    sound: localStorage.getItem('cfg_sound') !== 'off',
+    timer: localStorage.getItem('cfg_timer') === 'on',
+  }
+};
+
+let timerInterval = null;
+
+// ══════════════════════════════════
+//  SETUP
+// ══════════════════════════════════
+
+let setupTeamCount = 1;
+const setupTeams = [{name:'第一組',charId:'lion'},{name:'第二組',charId:'dragon'},{name:'第三組',charId:'tiger'},{name:'第四組',charId:'panda'}];
+
+function initSetup() {
+  setTeamCount(2);
+  document.getElementById('cfg-url').value = G.cfg.url;
+  loadLocalSaves();
+}
+
+function setTeamCount(n) {
+  setupTeamCount = n;
+  document.querySelectorAll('.count-btn').forEach((b,i) => b.classList.toggle('sel', i+1 === n));
+  renderTeamCards();
+}
+
+function renderTeamCards() {
+  const el = document.getElementById('team-cards');
+  el.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const t = setupTeams[i];
+    const hidden = i >= setupTeamCount;
+    const div = document.createElement('div');
+    div.className = 'team-card' + (hidden ? ' hidden' : '');
+    div.id = `tc-${i}`;
+    div.style.borderColor = hidden ? '' : TEAM_COLORS[i];
+    div.innerHTML = `
+      <div class="team-card-header">
+        <div class="team-dot" style="background:${TEAM_COLORS[i]}"></div>
+        <input class="team-name-input" value="${t.name}" oninput="setupTeams[${i}].name=this.value" placeholder="組別名稱">
+      </div>
+      <div style="font-size:.75rem;color:var(--muted);margin-bottom:6px">選擇角色</div>
+      <div class="char-grid" id="cg-${i}">
+        ${CHARS.map(c=>`<div class="char-opt${t.charId===c.id?' sel':''}" onclick="selectChar(${i},'${c.id}',this)">
+          <div class="ce">${c.emoji}</div><div class="cn">${c.name}</div>
+        </div>`).join('')}
+      </div>`;
+    el.appendChild(div);
+  }
+}
+
+function selectChar(teamIdx, charId, el) {
+  setupTeams[teamIdx].charId = charId;
+  document.querySelectorAll(`#cg-${teamIdx} .char-opt`).forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function loadLocalSaves() {
+  const saves = getLocalSaves();
+  const section = document.getElementById('load-section');
+  const list = document.getElementById('save-list');
+  if (saves.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  list.innerHTML = saves.map((s, i) => `
+    <div class="save-item">
+      <div class="si-info">
+        <span class="si-name">${esc(s.name)} - ${esc(s.classId)}</span>
+        <span class="si-time">${s.time}</span>
+      </div>
+      <button class="si-resume" onclick="resumeSave(${i})">繼續</button>
+    </div>`).join('');
+}
+
+function getLocalSaves() {
+  try { return JSON.parse(localStorage.getItem('tl_saves') || '[]'); } catch(e) { return []; }
+}
+
+function resumeSave(idx) {
+  const saves = getLocalSaves();
+  if (!saves[idx]) return;
+  const state = saves[idx].state;
+  G.classId    = state.classId;
+  G.teams      = state.teams;
+  G.currentTeam = state.currentTeam;
+  G.squares    = state.squares || [...SQUARES];
+  G.log        = state.log || [];
+  G.phase      = 'roll';
+  G.rolling    = false;
+  showScreen('game');
+  document.getElementById('gh-class').textContent = `🎲 台語大富翁 - ${G.classId}`;
+  renderBoard();
+  renderTokens();
+  renderScoreboard();
+  renderLog();
+  updateTurnBanner();
+}
+
+function startGame() {
+  const classId = document.getElementById('classId').value.trim() || '未命名班級';
+  G.classId = classId;
+  G.teamCount = setupTeamCount;
+  G.teams = [];
+  for (let i = 0; i < setupTeamCount; i++) {
+    const t = setupTeams[i];
+    const char = CHARS.find(c => c.id === t.charId) || CHARS[i];
+    G.teams.push({
+      name: t.name || `第${i+1}組`,
+      char: char,
+      color: TEAM_COLORS[i],
+      pos: 1,
+      score: 0,
+      skipTurns: 0,
+    });
+  }
+  G.currentTeam = 0;
+  G.phase = 'roll';
+  G.rolling = false;
+  G.log = [];
+  document.getElementById('gh-class').textContent = `🎲 台語大富翁 - ${classId}`;
+  showScreen('game');
+  renderBoard();
+  renderTokens();
+  renderScoreboard();
+  renderLog();
+  updateTurnBanner();
+  // Try load custom questions from Sheets
+  if (G.cfg.url) loadQuestionsFromSheets();
+}
+
+// ══════════════════════════════════
+//  BOARD
+// ══════════════════════════════════
+
+function getGridPos(n) {
+  const idx = n - 1;
+  const row = Math.floor(idx / 5);
+  const col = idx % 5;
+  const gridRow = 4 - row;
+  const gridCol = (row % 2 === 0) ? col + 1 : 5 - col;
+  return {gridRow, gridCol};
+}
+
+function renderBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  G.squares.forEach(sq => {
+    const {gridRow, gridCol} = getGridPos(sq.n);
+    const div = document.createElement('div');
+    div.className = `sq sq-${sq.type}`;
+    div.id = `sq-${sq.n}`;
+    div.style.gridRow = gridRow;
+    div.style.gridColumn = gridCol;
+    div.style.background = sq.color ? `linear-gradient(135deg,${darken(sq.color)},${sq.color})` : '';
+    div.innerHTML = `
+      <div class="sq-num">${sq.n}</div>
+      <div class="sq-emoji">${sq.emoji}</div>
+      <div class="sq-name">${sq.name}</div>
+      <div class="sq-tokens" id="tokens-${sq.n}"></div>`;
+    div.onclick = () => showSquareInfo(sq.n);
+    board.appendChild(div);
+  });
+}
+
+function darken(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgb(${Math.max(0,r-40)},${Math.max(0,g-40)},${Math.max(0,b-40)})`;
+}
+
+function renderTokens() {
+  // Clear all token slots
+  document.querySelectorAll('.sq-tokens').forEach(el => el.innerHTML = '');
+  G.teams.forEach((team, i) => {
+    const el = document.getElementById(`tokens-${team.pos}`);
+    if (!el) return;
+    const tok = document.createElement('div');
+    tok.className = 'token';
+    tok.style.background = team.color;
+    tok.textContent = team.char.emoji;
+    tok.title = team.name;
+    el.appendChild(tok);
+  });
+}
+
+function highlightSquare(n) {
+  document.querySelectorAll('.sq').forEach(s => s.classList.remove('highlight-move','current-sq'));
+  const el = document.getElementById(`sq-${n}`);
+  if (el) { el.classList.add('highlight-move'); setTimeout(()=>el.classList.add('current-sq'),350); }
+}
+
+function showSquareInfo(n) {
+  const sq = G.squares.find(s => s.n === n);
+  if (!sq) return;
+  toast(`${sq.emoji} 第${n}格：${sq.name}`);
+}
+
+// ══════════════════════════════════
+//  DICE
+// ══════════════════════════════════
+
+// Face orientations: value → CSS transform to face viewer
+const DICE_ORIENTATIONS = {
+  1: 'rotateX(0deg) rotateY(0deg)',       // front face
+  2: 'rotateX(0deg) rotateY(-90deg)',     // right face toward viewer (rotate left)
+  3: 'rotateX(-90deg) rotateY(0deg)',     // top face toward viewer (rotate down)
+};
+
+function rollDice() {
+  if (G.rolling || G.phase !== 'roll') return;
+  const team = G.teams[G.currentTeam];
+  if (team.skipTurns > 0) {
+    team.skipTurns--;
+    addLog(`${team.char.emoji} ${team.name} 跳過本回合`);
+    nextTurn();
+    return;
+  }
+  G.rolling = true;
+  document.getElementById('roll-btn').disabled = true;
+  playSound('roll');
+  const result = Math.floor(Math.random() * 3) + 1;
+  const dice = document.getElementById('dice');
+  const finalTransform = DICE_ORIENTATIONS[result];
+  dice.style.setProperty('--dice-final', finalTransform);
+  dice.style.transition = 'none';
+  dice.style.transform = 'rotateX(0deg) rotateY(0deg)';
+  void dice.offsetWidth;
+  dice.classList.add('rolling');
+  dice.addEventListener('animationend', function handler() {
+    dice.classList.remove('rolling');
+    dice.style.transition = 'transform .3s ease';
+    dice.style.transform = finalTransform;
+    dice.removeEventListener('animationend', handler);
+    document.getElementById('dice-num').textContent = result;
+    addLog(`${team.char.emoji} ${team.name} 擲出 ${result} 點`);
+    setTimeout(() => {
+      playSound('land');
+      movePlayer(result);
+    }, 400);
+  }, {once: true});
+}
+
+// ══════════════════════════════════
+//  GAME LOGIC
+// ══════════════════════════════════
+
+function movePlayer(steps) {
+  const team = G.teams[G.currentTeam];
+  const newPos = Math.min(team.pos + steps, 20);
+  let current = team.pos;
+  const interval = setInterval(() => {
+    current = Math.min(current + 1, newPos);
+    team.pos = current;
+    renderTokens();
+    highlightSquare(current);
+    if (current >= newPos) {
+      clearInterval(interval);
+      G.rolling = false;
+      renderScoreboard();
+      setTimeout(() => landOnSquare(current), 300);
+    }
+  }, 350);
+}
+
+function landOnSquare(n) {
+  const sq = G.squares.find(s => s.n === n);
+  if (!sq) { nextTurn(); return; }
+  const team = G.teams[G.currentTeam];
+  addLog(`${team.char.emoji} ${team.name} 抵達第 ${n} 格：${sq.name}`);
+
+  if (sq.type === 'chance') {
+    setTimeout(() => drawCard('chance'), 400);
+  } else if (sq.type === 'fortune') {
+    setTimeout(() => drawCard('fortune'), 400);
+  } else if (sq.type === 'rest') {
+    team.skipTurns = 1;
+    addLog(`😴 ${team.name} 休息一回合`);
+    showNotification(`😴 ${team.name} 休息一回合！`);
+    setTimeout(nextTurn, 2000);
+  } else if (sq.type === 'start') {
+    setTimeout(nextTurn, 800);
+  } else if (sq.type === 'end') {
+    team.score += sq.pts;
+    renderScoreboard();
+    setTimeout(showGameOver, 800);
+  } else {
+    // task, song, riddle
+    G.phase = 'task';
+    setTimeout(() => showTaskModal(sq), 500);
+  }
+}
+
+// ── Task modal ──
+let currentSquare = null;
+
+function showTaskModal(sq) {
+  currentSquare = sq;
+  const team = G.teams[G.currentTeam];
+  const badge = {task:'台語任務',song:'台語歌謠',riddle:'台語猜謎',start:'起點',end:'終點'}[sq.type] || sq.type;
+  const badgeColors = {task:'#2b6cb0',song:'#c05621',riddle:'#6b46c1'};
+  document.getElementById('tm-emoji').textContent = sq.emoji;
+  document.getElementById('tm-badge').textContent = badge;
+  document.getElementById('tm-badge').style.background = (badgeColors[sq.type]||'#4a5568') + '33';
+  document.getElementById('tm-badge').style.color = badgeColors[sq.type] || '#aaa';
+  document.getElementById('tm-badge').style.border = '1px solid ' + (badgeColors[sq.type]||'#4a5568') + '66';
+  document.getElementById('tm-title').textContent = sq.name;
+  document.getElementById('tm-team').textContent = `${team.char.emoji} ${team.name} 的挑戰！`;
+  document.getElementById('tm-desc').textContent = sq.desc;
+  document.getElementById('tm-pts').innerHTML = `完成可獲得 <span>${sq.pts}</span> 分`;
+  const timerEl = document.getElementById('task-timer');
+  timerEl.style.display = G.cfg.timer ? '' : 'none';
+  stopTimer();
+  if (G.cfg.timer) startTimer(60);
+  document.getElementById('task-modal-overlay').classList.remove('hidden');
+  playSound('task');
+}
+
+function completeTask() {
+  stopTimer();
+  const sq = currentSquare;
+  const team = G.teams[G.currentTeam];
+  team.score += sq.pts;
+  addLog(`✓ ${team.name} 完成「${sq.name}」，+${sq.pts} 分`);
+  closeAllModals();
+  renderScoreboard();
+  toast(`${team.char.emoji} 完成！+${sq.pts} 分！`);
+  playSound('success');
+  G.phase = 'roll';
+  setTimeout(nextTurn, 1200);
+}
+
+function skipTask() {
+  stopTimer();
+  const sq = currentSquare;
+  const team = G.teams[G.currentTeam];
+  addLog(`✗ ${team.name} 跳過「${sq.name}」`);
+  closeAllModals();
+  G.phase = 'roll';
+  toast(`已跳過，下一組！`);
+  setTimeout(nextTurn, 800);
+}
+
+// ── Timer ──
+function startTimer(secs) {
+  stopTimer();
+  document.getElementById('task-timer').style.display = '';
+  let left = secs;
+  document.getElementById('timer-display').textContent = left;
+  document.getElementById('timer-display').classList.remove('warn');
+  timerInterval = setInterval(() => {
+    left--;
+    document.getElementById('timer-display').textContent = left;
+    if (left <= 10) document.getElementById('timer-display').classList.add('warn');
+    if (left <= 0) { stopTimer(); playSound('timeup'); }
+  }, 1000);
+}
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  const d = document.getElementById('timer-display');
+  if (d) { d.classList.remove('warn'); }
+}
+
+// ── Cards ──
+function drawCard(type) {
+  G.phase = 'card';
+  const pool = type === 'chance' ? G.chanceCards : G.fortuneCards;
+  const card = pool[Math.floor(Math.random() * pool.length)];
+  G.pendingCard = {card, type};
+  const team = G.teams[G.currentTeam];
+  const overlay = document.getElementById('card-modal-overlay');
+  overlay.className = 'modal-overlay card-modal ' + type + '-modal';
+  document.getElementById('cm-badge').textContent = type === 'chance' ? '⭐ 機　會' : '🎴 命　運';
+  document.getElementById('cm-badge').style.background = type === 'chance' ? 'rgba(246,201,14,.15)' : 'rgba(229,62,62,.15)';
+  document.getElementById('cm-badge').style.color = type === 'chance' ? '#f6c90e' : '#fc8181';
+  document.getElementById('cm-title').textContent = type === 'chance' ? '幸運機會！' : '命運考驗！';
+  document.getElementById('cf-emoji').textContent = type === 'chance' ? '⭐' : '🎴';
+  document.getElementById('cf-label').textContent = '點擊翻牌！';
+  document.getElementById('card-back').className = 'card-face card-back ' + type + '-back';
+  document.getElementById('cb-emoji').textContent = card.emoji;
+  document.getElementById('cb-text').textContent = card.text;
+  document.getElementById('cm-content').style.display = 'none';
+  document.getElementById('cm-effect').style.display = 'none';
+  document.getElementById('cm-ok').style.display = 'none';
+  const flip = document.getElementById('card-flip');
+  flip.classList.remove('flipped');
+  flip.style.cursor = 'pointer';
+  flip.onclick = () => flipCard(card, type, team);
+  overlay.classList.remove('hidden');
+  playSound(type === 'chance' ? 'chance' : 'fortune');
+}
+
+function flipCard(card, type, team) {
+  const flip = document.getElementById('card-flip');
+  if (flip.classList.contains('flipped')) return;
+  flip.classList.add('flipped');
+  flip.onclick = null;
+  flip.style.cursor = 'default';
+  setTimeout(() => {
+    const effectText = getEffectLabel(card, type, team);
+    document.getElementById('cm-content').textContent = card.text;
+    document.getElementById('cm-content').style.display = '';
+    document.getElementById('cm-effect').textContent = '效果：' + effectText;
+    document.getElementById('cm-effect').style.display = '';
+    document.getElementById('cm-ok').style.display = 'block';
+  }, 400);
+}
+
+function getEffectLabel(card, type, team) {
+  switch(card.effect) {
+    case 'move':       return (card.val > 0 ? '前進' : '後退') + Math.abs(card.val) + ' 格';
+    case 'score':      return (card.val > 0 ? '+' : '') + card.val + ' 分';
+    case 'extra_roll': return '再擲一次骰子';
+    case 'all_score':  return '全組各 +' + card.val + ' 分';
+    case 'goto':       return '移動到第 ' + card.val + ' 格';
+    case 'give_score': return '贈送 ' + card.val + ' 分給選定組別';
+    case 'skip':       return '跳過下一回合';
+    case 'swap_first': return '與第一名互換位置';
+    case 'bonus_task': return '特別表演任務';
+    default: return card.label || '';
+  }
+}
+
+function confirmCard() {
+  if (!G.pendingCard) return;
+  const {card, type} = G.pendingCard;
+  const team = G.teams[G.currentTeam];
+  closeAllModals();
+  applyCardEffect(card, type, team);
+}
+
+function applyCardEffect(card, type, team) {
+  addLog(`${team.char.emoji} ${team.name} 抽到${type==='chance'?'機會':'命運'}卡：${card.emoji} ${card.label||card.text.split('\n')[0]}`);
+  switch(card.effect) {
+    case 'move': {
+      const newPos = Math.max(1, Math.min(20, team.pos + card.val));
+      team.pos = newPos;
+      renderTokens();
+      highlightSquare(newPos);
+      addLog(`  → 移動到第 ${newPos} 格`);
+      renderScoreboard();
+      if (newPos === 20) { setTimeout(showGameOver, 600); return; }
+      if (card.val !== 0) { setTimeout(() => landOnSquare(newPos), 800); return; }
+      break;
+    }
+    case 'score':
+      team.score = Math.max(0, team.score + card.val);
+      addLog(`  → 分數 ${card.val > 0 ? '+' : ''}${card.val}`);
+      renderScoreboard();
+      toast(`${card.val > 0 ? '+' : ''}${card.val} 分！`);
+      break;
+    case 'extra_roll':
+      G.phase = 'roll';
+      G.rolling = false;
+      updateTurnBanner();
+      document.getElementById('roll-btn').disabled = false;
+      toast('🎲 再擲一次！');
+      return;
+    case 'all_score':
+      G.teams.forEach(t => { t.score += card.val; });
+      addLog(`  → 全組各 +${card.val} 分`);
+      renderScoreboard();
+      toast(`🌟 全組各 +${card.val} 分！`);
+      break;
+    case 'goto': {
+      team.pos = card.val;
+      renderTokens();
+      highlightSquare(card.val);
+      addLog(`  → 傳送到第 ${card.val} 格`);
+      renderScoreboard();
+      setTimeout(() => landOnSquare(card.val), 800);
+      return;
+    }
+    case 'give_score':
+      addLog(`  → ${team.name} 選擇贈送 ${card.val} 分`);
+      toast('🤝 選擇一組贈送 ' + card.val + ' 分（請老師確認）');
+      // Simple: give to 2nd place team
+      { const sorted = [...G.teams].sort((a,b)=>b.pos-a.pos);
+        const recipient = sorted.find(t => t !== team);
+        if (recipient) { recipient.score += card.val; addLog(`  → ${recipient.name} 獲得 ${card.val} 分`); }
+      }
+      renderScoreboard();
+      break;
+    case 'skip':
+      team.skipTurns = (team.skipTurns || 0) + 1;
+      addLog(`  → ${team.name} 下回合跳過`);
+      toast('⏸ 跳過下一回合！');
+      break;
+    case 'swap_first': {
+      const first = G.teams.reduce((a,b) => (a.pos > b.pos || (a.pos===b.pos && a.score>b.score)) ? a : b);
+      if (first !== team) {
+        const tmpPos = team.pos; const tmpScore = team.score;
+        team.pos = first.pos; team.score = first.score;
+        first.pos = tmpPos; first.score = tmpScore;
+        addLog(`  → ${team.name} 與 ${first.name} 交換位置`);
+        renderTokens(); renderScoreboard();
+        toast(`🔀 ${team.name} 與 ${first.name} 換位置！`);
+      }
+      break;
+    }
+    case 'bonus_task':
+      G.phase = 'task';
+      document.getElementById('bm-team').textContent = `${team.char.emoji} ${team.name} 的挑戰！`;
+      document.getElementById('bonus-modal-overlay').classList.remove('hidden');
+      return;
+  }
+  G.phase = 'roll';
+  setTimeout(nextTurn, 1500);
+}
+
+function completeBonusTask() {
+  const team = G.teams[G.currentTeam];
+  team.score += 20;
+  addLog(`✓ ${team.name} 完成特別任務！+20 分`);
+  closeAllModals();
+  renderScoreboard();
+  toast(`🎤 完成特別任務！+20 分！`);
+  playSound('success');
+  G.phase = 'roll';
+  setTimeout(nextTurn, 1200);
+}
+function skipBonusTask() {
+  addLog(`✗ ${G.teams[G.currentTeam].name} 跳過特別任務`);
+  closeAllModals();
+  G.phase = 'roll';
+  setTimeout(nextTurn, 600);
+}
+
+function nextTurn() {
+  G.currentTeam = (G.currentTeam + 1) % G.teams.length;
+  G.phase = 'roll';
+  G.rolling = false;
+  document.getElementById('roll-btn').disabled = false;
+  renderScoreboard();
+  updateTurnBanner();
+  renderLog();
+}
+
+function updateTurnBanner() {
+  const team = G.teams[G.currentTeam];
+  document.getElementById('tb-team').innerHTML = `
+    <span style="font-size:1.5rem">${team.char.emoji}</span>
+    <span style="color:${team.color}">${team.name}</span>`;
+  const skipEl = document.getElementById('tb-skip');
+  if (team.skipTurns > 0) {
+    skipEl.textContent = `本回合休息（還剩 ${team.skipTurns} 次）`;
+    skipEl.style.display = '';
+  } else {
+    skipEl.style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════
+//  SCOREBOARD & LOG
+// ══════════════════════════════════
+
+function renderScoreboard() {
+  const sorted = [...G.teams].map((t,i)=>({...t,origIdx:i}))
+    .sort((a,b) => b.score !== a.score ? b.score - a.score : b.pos - a.pos);
+  document.getElementById('scoreboard').innerHTML = sorted.map((t,rank) => `
+    <div class="score-row${t.origIdx===G.currentTeam?' is-current':''}">
+      <div style="font-size:.8rem;font-weight:700;color:var(--muted);width:16px;text-align:center">${rank+1}</div>
+      <div class="sr-emoji">${t.char.emoji}</div>
+      <div class="sr-info">
+        <div class="sr-name" style="color:${t.color}">${esc(t.name)}</div>
+        <div class="sr-pos">第 ${t.pos} 格</div>
+      </div>
+      <div class="sr-score">${t.score}</div>
+    </div>`).join('');
+}
+
+function addLog(msg) {
+  G.log.unshift(msg);
+  if (G.log.length > 30) G.log.pop();
+  renderLog();
+}
+
+function renderLog() {
+  document.getElementById('log-list').innerHTML =
+    G.log.map(l => `<div class="log-item">${esc(l)}</div>`).join('');
+}
+
+// ══════════════════════════════════
+//  GAME OVER
+// ══════════════════════════════════
+
+function showGameOver() {
+  G.phase = 'end';
+  playSound('win');
+  const sorted = [...G.teams].sort((a,b) => b.score !== a.score ? b.score - a.score : b.pos - a.pos);
+  const winner = sorted[0];
+  document.getElementById('go-title').textContent = `🏆 ${winner.name} 獲勝！`;
+  document.getElementById('go-sub').textContent = `恭喜 ${winner.char.emoji} ${winner.name}！你們是台語高手！`;
+  const medals = ['🥇','🥈','🥉',''];
+  document.getElementById('go-rankings').innerHTML = `
+    <h3>最終排名</h3>
+    ${sorted.map((t,i) => `
+      <div class="rank-row">
+        <div class="rank-num">${medals[i]||i+1}</div>
+        <div class="rank-emoji">${t.char.emoji}</div>
+        <div class="rank-info">
+          <div class="rank-name" style="color:${t.color}">${esc(t.name)}</div>
+          <div class="rank-detail">第 ${t.pos} 格</div>
+        </div>
+        <div class="rank-score">${t.score} 分</div>
+      </div>`).join('')}`;
+  showScreen('gameover');
+}
+
+function restartGame() {
+  G.teams.forEach(t => { t.pos = 1; t.score = 0; t.skipTurns = 0; });
+  G.currentTeam = 0;
+  G.phase = 'roll';
+  G.rolling = false;
+  G.log = [];
+  showScreen('game');
+  renderBoard();
+  renderTokens();
+  renderScoreboard();
+  renderLog();
+  updateTurnBanner();
+}
+
+// ══════════════════════════════════
+//  SAVE / LOAD
+// ══════════════════════════════════
+
+function openSaveModal() {
+  document.getElementById('save-name').value = `第${Math.floor(Math.random()*10+1)}節課`;
+  document.getElementById('save-status').innerHTML = '';
+  document.getElementById('save-modal-overlay').classList.remove('hidden');
+}
+
+function doSave() {
+  const name = document.getElementById('save-name').value.trim() || '未命名';
+  const state = {
+    classId: G.classId,
+    teams: G.teams.map(t => ({...t})),
+    currentTeam: G.currentTeam,
+    squares: G.squares,
+    log: G.log,
+  };
+  // Save locally
+  const saves = getLocalSaves();
+  const existing = saves.findIndex(s => s.classId === G.classId && s.name === name);
+  const entry = {name, classId: G.classId, time: new Date().toLocaleString('zh-TW'), state};
+  if (existing >= 0) saves[existing] = entry; else saves.unshift(entry);
+  localStorage.setItem('tl_saves', JSON.stringify(saves.slice(0,20)));
+  const statusEl = document.getElementById('save-status');
+  statusEl.className = 'save-status ok';
+  statusEl.textContent = '✓ 已儲存到瀏覽器！';
+  addLog(`💾 進度已儲存：${name}`);
+  // Also try Sheets
+  if (G.cfg.url) {
+    saveToSheets(name, state).then(ok => {
+      if (ok) { statusEl.textContent = '✓ 已同步到 Google 試算表！'; }
+    });
+  }
+  setTimeout(closeAllModals, 1800);
+}
+
+async function saveToSheets(name, state) {
+  if (!G.cfg.url) return false;
+  try {
+    const res = await fetch(G.cfg.url, {
+      method: 'POST',
+      body: JSON.stringify({action:'saveProgress', classId: G.classId, name, state: JSON.stringify(state)}),
+    });
+    const data = await res.json();
+    return data.success;
+  } catch(e) { return false; }
+}
+
+async function loadQuestionsFromSheets() {
+  if (!G.cfg.url) return;
+  try {
+    const res = await fetch(G.cfg.url + '?action=getQuestions');
+    const data = await res.json();
+    if (data.questions && data.questions.length) {
+      G.squares = data.questions;
+      renderBoard();
+      renderTokens();
+    }
+    if (data.chanceCards) G.chanceCards = data.chanceCards;
+    if (data.fortuneCards) G.fortuneCards = data.fortuneCards;
+  } catch(e) { /* silent fail, use defaults */ }
+}
+
+// ══════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════
+
+function openSettingsModal() {
+  document.getElementById('cfg-url').value = G.cfg.url;
+  document.getElementById('cfg-sound').checked = G.cfg.sound;
+  document.getElementById('cfg-timer').checked = G.cfg.timer;
+  document.getElementById('settings-modal-overlay').classList.remove('hidden');
+}
+
+function saveSettings() {
+  G.cfg.url    = document.getElementById('cfg-url').value.trim();
+  G.cfg.sound  = document.getElementById('cfg-sound').checked;
+  G.cfg.timer  = document.getElementById('cfg-timer').checked;
+  localStorage.setItem('cfg_url',   G.cfg.url);
+  localStorage.setItem('cfg_sound', G.cfg.sound ? 'on' : 'off');
+  localStorage.setItem('cfg_timer', G.cfg.timer ? 'on' : 'off');
+  closeAllModals();
+  toast('設定已儲存！');
+}
+
+// ══════════════════════════════════
+//  SOUND (Web Audio API)
+// ══════════════════════════════════
+
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playSound(type) {
+  if (!G.cfg.sound) return;
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    const t = ctx.currentTime;
+    if (type === 'roll') {
+      for (let i = 0; i < 6; i++) {
+        const buf = ctx.createBuffer(1,2048,ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let j=0;j<2048;j++) d[j]=Math.random()*2-1;
+        const src = ctx.createBufferSource(); src.buffer = buf;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.25, t+i*.12);
+        g.gain.exponentialRampToValueAtTime(0.001, t+i*.12+.1);
+        src.connect(g); g.connect(ctx.destination);
+        src.start(t+i*.12); src.stop(t+i*.12+.12);
+      }
+    } else if (type === 'land') {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.connect(g); g.connect(ctx.destination);
+      osc.frequency.setValueAtTime(660, t);
+      osc.frequency.exponentialRampToValueAtTime(440, t+.3);
+      g.gain.setValueAtTime(0.4, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t+.4);
+      osc.start(t); osc.stop(t+.45);
+    } else if (type === 'task') {
+      [523,659].forEach((f,i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.frequency.value = f;
+        g.gain.setValueAtTime(0.3, t+i*.1);
+        g.gain.exponentialRampToValueAtTime(0.001, t+i*.1+.15);
+        osc.start(t+i*.1); osc.stop(t+i*.1+.2);
+      });
+    } else if (type === 'chance') {
+      [523,659,784,1046].forEach((f,i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.frequency.value = f;
+        g.gain.setValueAtTime(0.35, t+i*.1);
+        g.gain.exponentialRampToValueAtTime(0.001, t+i*.1+.18);
+        osc.start(t+i*.1); osc.stop(t+i*.1+.22);
+      });
+    } else if (type === 'fortune') {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.connect(g); g.connect(ctx.destination);
+      osc.frequency.setValueAtTime(350, t);
+      osc.frequency.exponentialRampToValueAtTime(150, t+.6);
+      g.gain.setValueAtTime(0.3, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t+.65);
+      osc.start(t); osc.stop(t+.7);
+    } else if (type === 'success') {
+      [523,659,784].forEach((f,i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.frequency.value = f;
+        g.gain.setValueAtTime(0.3, t+i*.08);
+        g.gain.exponentialRampToValueAtTime(0.001, t+i*.08+.15);
+        osc.start(t+i*.08); osc.stop(t+i*.08+.2);
+      });
+    } else if (type === 'win') {
+      [523,659,784,659,784,1046,1175].forEach((f,i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.frequency.value = f;
+        const st = t + i*.13;
+        g.gain.setValueAtTime(0.4, st);
+        g.gain.exponentialRampToValueAtTime(0.001, st+.2);
+        osc.start(st); osc.stop(st+.25);
+      });
+    } else if (type === 'timeup') {
+      [880,660,440].forEach((f,i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.connect(g); g.connect(ctx.destination);
+        osc.frequency.value = f;
+        g.gain.setValueAtTime(0.4, t+i*.15);
+        g.gain.exponentialRampToValueAtTime(0.001, t+i*.15+.2);
+        osc.start(t+i*.15); osc.stop(t+i*.15+.25);
+      });
+    }
+  } catch(e) {}
+}
+
+// ══════════════════════════════════
+//  UTILITIES
+// ══════════════════════════════════
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function closeAllModals() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+  stopTimer();
+}
+
+function showNotification(msg) { toast(msg); }
+
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ══════════════════════════════════
+//  INIT
+// ══════════════════════════════════
+
+initSetup();
+</script>
+</body>
+</html>
