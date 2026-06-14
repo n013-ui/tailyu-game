@@ -771,6 +771,8 @@ function startGame() {
       pos: 1,
       score: 0,
       skipTurns: 0,
+      finished: false,
+      finishOrder: null,
     });
   }
   G.currentTeam = 0;
@@ -945,9 +947,26 @@ function landOnSquare(n) {
   } else if (sq.type === 'start') {
     setTimeout(nextTurn, 800);
   } else if (sq.type === 'end') {
-    team.score += sq.pts;
+    const doneCount = G.teams.filter(t => t.finished).length;
+    team.finished = true;
+    team.finishOrder = doneCount + 1;
+    // 先到終點的組別獲得額外獎勵
+    const orderBonus = [30, 20, 10, 0];
+    const bonus = orderBonus[doneCount] || 0;
+    team.score += sq.pts + bonus;
+    const bonusMsg = bonus > 0 ? `（含抵達獎勵 +${bonus}）` : '';
+    addLog(`🏁 ${team.name} 第 ${team.finishOrder} 個到達終點！+${sq.pts + bonus} 分 ${bonusMsg}`);
+    playSound('win');
     renderScoreboard();
-    setTimeout(showGameOver, 800);
+    renderTokens();
+    const allDone = G.teams.every(t => t.finished);
+    if (allDone) {
+      setTimeout(showGameOver, 1200);
+    } else {
+      const remain = G.teams.filter(t => !t.finished).map(t => t.name).join('、');
+      toast(`🏁 ${team.name} 到終點！+${bonus} 獎勵分！等待：${remain}`);
+      setTimeout(nextTurn, 2000);
+    }
   } else {
     // task, song, riddle
     G.phase = 'task';
@@ -1191,10 +1210,19 @@ function skipBonusTask() {
 }
 
 function nextTurn() {
-  G.currentTeam = (G.currentTeam + 1) % G.teams.length;
   G.phase = 'roll';
   G.rolling = false;
   document.getElementById('roll-btn').disabled = false;
+  // 若全部都已到終點（防呆）
+  if (G.teams.every(t => t.finished)) { showGameOver(); return; }
+  // 找下一個還沒到終點的組
+  let next = (G.currentTeam + 1) % G.teams.length;
+  let guard = 0;
+  while (G.teams[next].finished && guard < G.teams.length) {
+    next = (next + 1) % G.teams.length;
+    guard++;
+  }
+  G.currentTeam = next;
   renderScoreboard();
   updateTurnBanner();
   renderLog();
@@ -1227,7 +1255,7 @@ function renderScoreboard() {
       <div class="sr-emoji" style="background:rgba(0,0,0,.3);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid ${t.color}">${t.char.emoji}</div>
       <div class="sr-info">
         <div class="sr-name" style="color:${t.color}">${esc(t.name)}</div>
-        <div class="sr-pos">第 ${t.pos} 格${t.skipTurns>0?' ⏸休息':''}${t.origIdx===G.currentTeam?' ◀ 輪到你':''}</div>
+        <div class="sr-pos">${t.finished?`🏁 第${t.finishOrder}完成`:`第 ${t.pos} 格`}${t.skipTurns>0?' ⏸':''}${t.origIdx===G.currentTeam&&!t.finished?' ◀':''}</div>
       </div>
       <div class="sr-score">${t.score}</div>
     </div>`).join('');
@@ -1272,7 +1300,7 @@ function showGameOver() {
 }
 
 function restartGame() {
-  G.teams.forEach(t => { t.pos = 1; t.score = 0; t.skipTurns = 0; });
+  G.teams.forEach(t => { t.pos = 1; t.score = 0; t.skipTurns = 0; t.finished = false; t.finishOrder = null; });
   G.currentTeam = 0;
   G.phase = 'roll';
   G.rolling = false;
