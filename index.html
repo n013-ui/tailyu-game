@@ -50,6 +50,17 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 .char-opt .ce{font-size:1.6rem;line-height:1}
 .char-opt .cn{font-size:.6rem;color:var(--muted)}
 
+/* Class select buttons */
+.class-btns{display:flex;gap:10px}
+.class-btn{padding:8px 28px;border-radius:20px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:var(--text);font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:1px}
+.class-btn:hover{border-color:var(--gold);color:var(--gold)}
+.class-btn.sel{background:rgba(246,201,14,.18);border-color:var(--gold);color:var(--gold)}
+
+/* Taken character */
+.char-opt.char-taken{opacity:.35;cursor:not-allowed;position:relative}
+.char-opt.char-taken:hover{border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.04)}
+.char-x{position:absolute;top:2px;right:4px;font-size:.6rem;color:#fc8181;font-weight:900}
+
 .load-section{background:rgba(246,201,14,.06);border:1px solid rgba(246,201,14,.2);border-radius:var(--radius);padding:16px;margin-bottom:16px}
 .load-section h3{font-size:.85rem;color:var(--gold);margin-bottom:10px}
 .save-list{display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto}
@@ -291,7 +302,10 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
     <h3>基本設定</h3>
     <div class="field-row">
       <label>班　級</label>
-      <input class="field-input" id="classId" type="text" placeholder="例如：901班">
+      <div class="class-btns">
+        <button class="class-btn sel" data-cls="701" onclick="selectClass('701')">701 班</button>
+        <button class="class-btn" data-cls="702" onclick="selectClass('702')">702 班</button>
+      </div>
     </div>
     <div class="field-row">
       <label>組別數</label>
@@ -476,10 +490,7 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
       <h2>⚙ 遊戲設定</h2>
     </div>
     <div class="settings-form">
-      <label>Google Apps Script 網址（選填）</label>
-      <input class="field-input" id="cfg-url" type="url" placeholder="https://script.google.com/macros/s/...">
-      <p class="hint">設定後可使用 Google 試算表自訂題目及儲存進度。<br>請參閱 apps-script.js 設定說明。</p>
-      <label style="margin-top:16px;display:flex;align-items:center;gap:8px;cursor:pointer">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px">
         <input type="checkbox" id="cfg-sound" style="accent-color:var(--gold);width:16px;height:16px">
         <span style="font-size:.88rem;color:var(--text)">音效</span>
       </label>
@@ -539,13 +550,17 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 //  CONSTANTS
 // ══════════════════════════════════
 
+// ── 部署 Apps Script 後，把網址填在這裡 ──────────────────
+const APPS_SCRIPT_URL = '';  // 例如 https://script.google.com/macros/s/xxx/exec
+// ─────────────────────────────────────────────────────────
+
 const CHARS = [
-  {id:'lion',   name:'阿獅', emoji:'🦁', color:'#fc8181'},
-  {id:'dragon', name:'小龍', emoji:'🐲', color:'#63b3ed'},
-  {id:'tiger',  name:'虎仔', emoji:'🐯', color:'#68d391'},
-  {id:'panda',  name:'貓熊', emoji:'🐼', color:'#faf089'},
-  {id:'fox',    name:'狐狸', emoji:'🦊', color:'#fbd38d'},
-  {id:'rabbit', name:'兔兔', emoji:'🐰', color:'#d6bcfa'},
+  {id:'rabbit', name:'兔仔', emoji:'🐰', color:'#f9a8d4'},
+  {id:'cat',    name:'貓仔', emoji:'🐱', color:'#fb923c'},
+  {id:'mouse',  name:'鳥鼠', emoji:'🐭', color:'#a3a3a3'},
+  {id:'monkey', name:'阿猴', emoji:'🐒', color:'#d97706'},
+  {id:'tiger',  name:'虎',   emoji:'🐯', color:'#facc15'},
+  {id:'panda',  name:'貓熊', emoji:'🐼', color:'#86efac'},
 ];
 
 const TEAM_COLORS = ['#fc8181','#63b3ed','#68d391','#faf089'];
@@ -596,19 +611,19 @@ const FORTUNE_CARDS = [
 // ══════════════════════════════════
 
 let G = {
-  classId: '',
+  classId: '701',
   teamCount: 1,
   teams: [],
   currentTeam: 0,
   squares: [...SQUARES],
   chanceCards: [...CHANCE_CARDS],
   fortuneCards: [...FORTUNE_CARDS],
-  phase: 'roll',    // 'roll' | 'task' | 'card' | 'end'
+  phase: 'roll',
   rolling: false,
   pendingCard: null,
   log: [],
   cfg: {
-    url: localStorage.getItem('cfg_url') || '',
+    url: APPS_SCRIPT_URL,
     sound: localStorage.getItem('cfg_sound') !== 'off',
     timer: localStorage.getItem('cfg_timer') === 'on',
   }
@@ -621,12 +636,18 @@ let timerInterval = null;
 // ══════════════════════════════════
 
 let setupTeamCount = 1;
-const setupTeams = [{name:'第一組',charId:'lion'},{name:'第二組',charId:'dragon'},{name:'第三組',charId:'tiger'},{name:'第四組',charId:'panda'}];
+let setupClass = '701';
+const setupTeams = [{name:'第一組',charId:'rabbit'},{name:'第二組',charId:'cat'},{name:'第三組',charId:'mouse'},{name:'第四組',charId:'monkey'}];
 
 function initSetup() {
   setTeamCount(2);
-  document.getElementById('cfg-url').value = G.cfg.url;
+  selectClass('701');
   loadLocalSaves();
+}
+
+function selectClass(cls) {
+  setupClass = cls;
+  document.querySelectorAll('.class-btn').forEach(b => b.classList.toggle('sel', b.dataset.cls === cls));
 }
 
 function setTeamCount(n) {
@@ -645,6 +666,10 @@ function renderTeamCards() {
     div.className = 'team-card' + (hidden ? ' hidden' : '');
     div.id = `tc-${i}`;
     div.style.borderColor = hidden ? '' : TEAM_COLORS[i];
+    // chars used by OTHER active teams
+    const takenIds = setupTeams
+      .filter((_, idx) => idx !== i && idx < setupTeamCount)
+      .map(t => t.charId);
     div.innerHTML = `
       <div class="team-card-header">
         <div class="team-dot" style="background:${TEAM_COLORS[i]}"></div>
@@ -652,18 +677,30 @@ function renderTeamCards() {
       </div>
       <div style="font-size:.75rem;color:var(--muted);margin-bottom:6px">選擇角色</div>
       <div class="char-grid" id="cg-${i}">
-        ${CHARS.map(c=>`<div class="char-opt${t.charId===c.id?' sel':''}" onclick="selectChar(${i},'${c.id}',this)">
-          <div class="ce">${c.emoji}</div><div class="cn">${c.name}</div>
-        </div>`).join('')}
+        ${CHARS.map(c => {
+          const taken = takenIds.includes(c.id);
+          const sel = t.charId === c.id;
+          return `<div class="char-opt${sel?' sel':''}${taken?' char-taken':''}"
+            title="${taken?'已被其他組選走':'選擇 '+c.name}"
+            onclick="selectChar(${i},'${c.id}')">
+            <div class="ce">${c.emoji}</div>
+            <div class="cn">${c.name}</div>
+            ${taken?'<div class="char-x">✗</div>':''}
+          </div>`;
+        }).join('')}
       </div>`;
     el.appendChild(div);
   }
 }
 
-function selectChar(teamIdx, charId, el) {
+function selectChar(teamIdx, charId) {
+  const takenBy = setupTeams.findIndex((t, i) => i !== teamIdx && i < setupTeamCount && t.charId === charId);
+  if (takenBy >= 0) {
+    toast(`${CHARS.find(c=>c.id===charId)?.emoji} 已被第 ${takenBy+1} 組選走了！`);
+    return;
+  }
   setupTeams[teamIdx].charId = charId;
-  document.querySelectorAll(`#cg-${teamIdx} .char-opt`).forEach(e => e.classList.remove('sel'));
-  el.classList.add('sel');
+  renderTeamCards();
 }
 
 function loadLocalSaves() {
@@ -707,7 +744,7 @@ function resumeSave(idx) {
 }
 
 function startGame() {
-  const classId = document.getElementById('classId').value.trim() || '未命名班級';
+  const classId = setupClass;
   G.classId = classId;
   G.teamCount = setupTeamCount;
   G.teams = [];
@@ -734,8 +771,7 @@ function startGame() {
   renderScoreboard();
   renderLog();
   updateTurnBanner();
-  // Try load custom questions from Sheets
-  if (G.cfg.url) loadQuestionsFromSheets();
+  if (APPS_SCRIPT_URL) loadQuestionsFromSheets();
 }
 
 // ══════════════════════════════════
@@ -1270,9 +1306,9 @@ function doSave() {
 }
 
 async function saveToSheets(name, state) {
-  if (!G.cfg.url) return false;
+  if (!APPS_SCRIPT_URL) return false;
   try {
-    const res = await fetch(G.cfg.url, {
+    const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       body: JSON.stringify({action:'saveProgress', classId: G.classId, name, state: JSON.stringify(state)}),
     });
@@ -1282,9 +1318,9 @@ async function saveToSheets(name, state) {
 }
 
 async function loadQuestionsFromSheets() {
-  if (!G.cfg.url) return;
+  if (!APPS_SCRIPT_URL) return;
   try {
-    const res = await fetch(G.cfg.url + '?action=getQuestions');
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getQuestions');
     const data = await res.json();
     if (data.questions && data.questions.length) {
       G.squares = data.questions;
@@ -1301,17 +1337,14 @@ async function loadQuestionsFromSheets() {
 // ══════════════════════════════════
 
 function openSettingsModal() {
-  document.getElementById('cfg-url').value = G.cfg.url;
   document.getElementById('cfg-sound').checked = G.cfg.sound;
   document.getElementById('cfg-timer').checked = G.cfg.timer;
   document.getElementById('settings-modal-overlay').classList.remove('hidden');
 }
 
 function saveSettings() {
-  G.cfg.url    = document.getElementById('cfg-url').value.trim();
   G.cfg.sound  = document.getElementById('cfg-sound').checked;
   G.cfg.timer  = document.getElementById('cfg-timer').checked;
-  localStorage.setItem('cfg_url',   G.cfg.url);
   localStorage.setItem('cfg_sound', G.cfg.sound ? 'on' : 'off');
   localStorage.setItem('cfg_timer', G.cfg.timer ? 'on' : 'off');
   closeAllModals();
