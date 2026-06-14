@@ -90,13 +90,17 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 /* ── BOARD ── */
 .board-wrap{flex:1;padding:12px;display:flex;align-items:center;justify-content:center;min-height:0;overflow:auto}
 .board{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(4,1fr);gap:5px;width:100%;max-width:520px;aspect-ratio:5/4}
-.sq{border-radius:8px;padding:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:default;border:2px solid rgba(255,255,255,.08);transition:all .2s;min-width:0}
+.sq{border-radius:8px;padding:4px 4px 28px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;cursor:default;border:2px solid rgba(255,255,255,.08);transition:all .2s;min-width:0}
 .sq:hover{border-color:rgba(255,255,255,.35);transform:scale(1.03);z-index:2}
-.sq .sq-num{position:absolute;top:3px;left:6px;font-size:.6rem;font-weight:700;opacity:.65;line-height:1}
-.sq .sq-emoji{font-size:1.35rem;line-height:1;margin-bottom:2px}
-.sq .sq-name{font-size:.58rem;text-align:center;line-height:1.2;opacity:.85;font-weight:600}
-.sq .sq-tokens{position:absolute;bottom:3px;right:3px;display:flex;gap:2px;flex-wrap:wrap;max-width:80%;justify-content:flex-end}
-.token{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;border:2px solid rgba(255,255,255,.8);box-shadow:0 1px 4px rgba(0,0,0,.4);flex-shrink:0}
+.sq .sq-num{position:absolute;top:3px;left:5px;font-size:.6rem;font-weight:700;opacity:.65;line-height:1}
+.sq .sq-emoji{font-size:1.3rem;line-height:1;margin-top:10px;margin-bottom:1px}
+.sq .sq-name{font-size:.55rem;text-align:center;line-height:1.2;opacity:.85;font-weight:600}
+/* Token strip 固定在格子底部 */
+.sq .sq-tokens{position:absolute;bottom:0;left:0;right:0;min-height:26px;display:flex;gap:3px;flex-wrap:wrap;justify-content:center;align-items:center;padding:2px 3px;border-radius:0 0 6px 6px;border-top:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.3)}
+.sq .sq-tokens:empty{background:rgba(0,0,0,.12);border-top-color:rgba(255,255,255,.05)}
+/* Token 圓形棋子：每組不同顏色邊框 */
+.token{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.6),0 2px 5px rgba(0,0,0,.7);background:rgba(8,12,25,.9);flex-shrink:0;transition:transform .15s}
+.token:hover{transform:scale(1.2);z-index:5}
 .sq.highlight-move{animation:sqpulse .4s ease}
 @keyframes sqpulse{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
 .sq.current-sq{box-shadow:0 0 0 3px var(--gold),0 0 12px rgba(246,201,14,.5)}
@@ -160,8 +164,8 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 /* Scoreboard */
 .scoreboard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;margin-bottom:14px}
 .scoreboard h4{font-size:.75rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
-.score-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin-bottom:4px;transition:background .2s}
-.score-row.is-current{background:rgba(246,201,14,.1);border:1px solid rgba(246,201,14,.25)}
+.score-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin-bottom:4px;transition:background .2s;border-left:4px solid transparent}
+.score-row.is-current{background:rgba(246,201,14,.1);outline:1px solid rgba(246,201,14,.3)}
 .score-row .sr-emoji{font-size:1.3rem;width:28px;text-align:center}
 .score-row .sr-info{flex:1;min-width:0}
 .score-row .sr-name{font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -276,6 +280,11 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
   .board{max-width:100%}
   .sq .sq-emoji{font-size:1.1rem}
   .sq .sq-name{font-size:.5rem}
+}
+@media(max-width:480px){
+  .sq{padding-bottom:22px}
+  .sq .sq-tokens{min-height:20px}
+  .token{width:17px;height:17px;font-size:.6rem;border-width:2px}
 }
 @media(max-width:480px){
   .game-logo h1{font-size:1.8rem}
@@ -680,7 +689,11 @@ function renderTeamCards() {
         ${CHARS.map(c => {
           const taken = takenIds.includes(c.id);
           const sel = t.charId === c.id;
+          const selStyle = sel
+            ? `border-color:${TEAM_COLORS[i]};background:${TEAM_COLORS[i]}28;box-shadow:0 0 0 2px ${TEAM_COLORS[i]}66`
+            : '';
           return `<div class="char-opt${sel?' sel':''}${taken?' char-taken':''}"
+            style="${selStyle}"
             title="${taken?'已被其他組選走':'選擇 '+c.name}"
             onclick="selectChar(${i},'${c.id}')">
             <div class="ce">${c.emoji}</div>
@@ -816,16 +829,21 @@ function darken(hex) {
 }
 
 function renderTokens() {
-  // Clear all token slots
   document.querySelectorAll('.sq-tokens').forEach(el => el.innerHTML = '');
   G.teams.forEach((team, i) => {
     const el = document.getElementById(`tokens-${team.pos}`);
     if (!el) return;
     const tok = document.createElement('div');
     tok.className = 'token';
-    tok.style.background = team.color;
+    tok.style.borderColor = team.color;
+    tok.style.boxShadow = `0 0 0 1px rgba(0,0,0,.6), 0 0 6px ${team.color}88, 0 2px 5px rgba(0,0,0,.7)`;
     tok.textContent = team.char.emoji;
-    tok.title = team.name;
+    tok.title = `${team.name}（第${team.pos}格）`;
+    // 目前輪到的玩家加大
+    if (i === G.currentTeam) {
+      tok.style.transform = 'scale(1.2)';
+      tok.style.zIndex = '3';
+    }
     el.appendChild(tok);
   });
 }
@@ -1204,12 +1222,12 @@ function renderScoreboard() {
   const sorted = [...G.teams].map((t,i)=>({...t,origIdx:i}))
     .sort((a,b) => b.score !== a.score ? b.score - a.score : b.pos - a.pos);
   document.getElementById('scoreboard').innerHTML = sorted.map((t,rank) => `
-    <div class="score-row${t.origIdx===G.currentTeam?' is-current':''}">
+    <div class="score-row${t.origIdx===G.currentTeam?' is-current':''}" style="border-left-color:${t.color}">
       <div style="font-size:.8rem;font-weight:700;color:var(--muted);width:16px;text-align:center">${rank+1}</div>
-      <div class="sr-emoji">${t.char.emoji}</div>
+      <div class="sr-emoji" style="background:rgba(0,0,0,.3);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid ${t.color}">${t.char.emoji}</div>
       <div class="sr-info">
         <div class="sr-name" style="color:${t.color}">${esc(t.name)}</div>
-        <div class="sr-pos">第 ${t.pos} 格</div>
+        <div class="sr-pos">第 ${t.pos} 格${t.skipTurns>0?' ⏸休息':''}${t.origIdx===G.currentTeam?' ◀ 輪到你':''}</div>
       </div>
       <div class="sr-score">${t.score}</div>
     </div>`).join('');
