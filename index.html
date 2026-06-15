@@ -1494,14 +1494,7 @@ async function loadQuestionsFromSheets() {
   try {
     const res = await fetch(APPS_SCRIPT_URL + '?action=getQuestions');
     const data = await res.json();
-    if (data.questions && data.questions.length) {
-      G.squares = data.questions.map(sq => ({
-        ...sq,
-        questions: sq.questions || (sq.desc ? [sq.desc] : ['']),
-      }));
-      renderBoard();
-      renderTokens();
-    }
+    // Only load chance/fortune cards from Sheets; local SQUARES already has multi-question variants
     if (data.chanceCards) G.chanceCards = data.chanceCards;
     if (data.fortuneCards) G.fortuneCards = data.fortuneCards;
   } catch(e) { /* silent fail, use defaults */ }
