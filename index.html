@@ -575,26 +575,98 @@ const CHARS = [
 const TEAM_COLORS = ['#fc8181','#63b3ed','#68d391','#faf089'];
 
 const SQUARES = [
-  {n:1,  type:'start',   name:'起點',      emoji:'🚀', desc:'遊戲開始！\n大家一起說：\n「逐家好！咱來學台語！」\n（Tak-ke hó! Lán lâi o̍h Tâi-gí!）', pts:0,  color:'#276749'},
-  {n:2,  type:'task',    name:'台語俚語',   emoji:'💬', desc:'說出 3 個台語俚語！\n例如：\n‧ 食果子，拜樹頭\n‧ 囝仔人有耳無喙\n‧ 放牛食草\n說出來並解釋意思！', pts:10, color:'#2b6cb0'},
-  {n:3,  type:'song',    name:'台語歌謠',   emoji:'🎵', desc:'用台語唱一首歌謠！\n至少完整唱 4 句\n（例如：一隻鳥仔哮救救、農村曲、望春風）\n大聲唱出來！', pts:15, color:'#c05621'},
-  {n:4,  type:'chance',  name:'機　會',     emoji:'⭐', desc:'抽一張機會卡！', pts:0,  color:'#b7791f'},
-  {n:5,  type:'riddle',  name:'台語猜謎',   emoji:'🔍', desc:'謎題：\n「一粒珠，圓閣圓，\n大人囡仔攏愛看。」\n用台語說出謎底！\n（答案：月娘 / 月亮）', pts:10, color:'#6b46c1'},
-  {n:6,  type:'task',    name:'台語繞口令', emoji:'👄', desc:'說台語繞口令，說 3 遍！\n\n「是獅是虎是獅虎，\n 是虎是獅是虎獅」\n\n（Sī sai sī hó͘ sī sai-hó͘，\n Sī hó͘ sī sai sī hó͘-sai）', pts:15, color:'#2b6cb0'},
-  {n:7,  type:'fortune', name:'命　運',     emoji:'🎴', desc:'抽一張命運卡！', pts:0,  color:'#c53030'},
-  {n:8,  type:'task',    name:'台語成語',   emoji:'📚', desc:'說出一個台語成語\n並解釋意思！\n例如：\n‧ 一人一家代（各人自掃門前雪）\n‧ 毋通糊塗（不可以馬虎）\n‧ 相招去散步（呼朋引伴）', pts:10, color:'#2b6cb0'},
-  {n:9,  type:'rest',    name:'休息一下',   emoji:'😴', desc:'休息一回合！\n下一次輪到你時跳過。\n（但可以為其他組加油！）\n\n大家一起用台語說：\n「好啦！休息一下！」', pts:0,  color:'#4a5568'},
-  {n:10, type:'task',    name:'台語數數',   emoji:'🔢', desc:'用台語從 1 數到 20！\n一、二、三、四、五、\n六、七、八、九、十、\n十一…二十\n念得流暢才算過關！', pts:10, color:'#2b6cb0'},
-  {n:11, type:'chance',  name:'機　會',     emoji:'⭐', desc:'抽一張機會卡！', pts:0,  color:'#b7791f'},
-  {n:12, type:'task',    name:'台語自我介紹',emoji:'👋', desc:'用台語完整做自我介紹！\n要包含：\n‧ 名字\n‧ 年紀\n‧ 就讀學校/班級\n‧ 一個喜好或特長\n說得愈流暢分數愈高！', pts:10, color:'#2b6cb0'},
-  {n:13, type:'song',    name:'台語童謠',   emoji:'🎶', desc:'表演台語童謠！\n至少唱完一個完整段落\n推薦：\n‧ 一隻鳥仔哮救救\n‧ 天黑黑\n‧ 丟丟銅仔\n‧ 白鷺鷥', pts:15, color:'#c05621'},
-  {n:14, type:'fortune', name:'命　運',     emoji:'🎴', desc:'抽一張命運卡！', pts:0,  color:'#c53030'},
-  {n:15, type:'task',    name:'台語方向',   emoji:'🧭', desc:'用台語說出所有方向！\n‧ 東、西、南、北\n‧ 左、右、前、後\n‧ 頂（上面）、下（下面）\n全部說正確才算！', pts:10, color:'#2b6cb0'},
-  {n:16, type:'task',    name:'台語食物',   emoji:'🍜', desc:'用台語說出 5 種\n傳統台灣食物！\n例如：\n‧ 牛肉麵（gû-bah-mī）\n‧ 滷肉飯（lū-bah-pn̄g）\n‧ 珍珠奶茶、鹽酥雞…', pts:10, color:'#2b6cb0'},
-  {n:17, type:'chance',  name:'機　會',     emoji:'⭐', desc:'抽一張機會卡！', pts:0,  color:'#b7791f'},
-  {n:18, type:'task',    name:'台語動物',   emoji:'🐾', desc:'用台語說出 5 種動物名稱\n並模仿牠們的叫聲！\n例如：\n‧ 狗（káu）→ 汪汪\n‧ 貓（niau）→ 喵喵\n‧ 雞（ke）→ 咕咕咕', pts:10, color:'#2b6cb0'},
-  {n:19, type:'fortune', name:'命　運',     emoji:'🎴', desc:'抽一張命運卡！', pts:0,  color:'#c53030'},
-  {n:20, type:'end',     name:'終　點',     emoji:'🏆', desc:'恭喜到達終點！\n你是台語高手！\n\n請用台語說：\n「多謝！咱攏是台語高手！」\n大家鼓掌！', pts:20, color:'#b7791f'},
+  {n:1,  type:'start',  name:'起點',       emoji:'🚀', pts:0,  color:'#276749',
+   questions:['遊戲開始！\n大家一起說：\n「逐家好！咱來學台語！」\n（Tak-ke hó! Lán lâi o̍h Tâi-gí!）']},
+
+  {n:2,  type:'task',   name:'台語俚語',   emoji:'💬', pts:10, color:'#2b6cb0',
+   questions:[
+    '說出 3 個台語俚語並解釋意思！\n‧ 食果子，拜樹頭\n‧ 囝仔人有耳無喙\n‧ 放牛食草',
+    '說出 3 個和「做人」有關的台語俚語！\n‧ 好心有好報\n‧ 人情留一線，日後好相見\n‧ 毋通害人害己',
+    '說出 3 個和動物有關的台語諺語！\n‧ 虎死留皮，人死留名\n‧ 狗咬狗骨頭\n‧ 雞母帶雞仔\n說說意思！']},
+
+  {n:3,  type:'song',   name:'台語歌謠',   emoji:'🎵', pts:15, color:'#c05621',
+   questions:[
+    '用台語唱「一隻鳥仔哮救救」！\n至少唱完一個完整段落，大聲唱！',
+    '用台語唱「天黑黑」！\n（天黑黑，欲落雨，阿公仔舉鋤頭欲掘芋…）\n至少 4 句！',
+    '用台語唱「望春風」！\n（獨夜無伴守燈下，清風對面吹…）\n至少 4 句！']},
+
+  {n:4,  type:'chance', name:'機　會',     emoji:'⭐', pts:0,  color:'#b7791f',
+   questions:['抽一張機會卡！']},
+
+  {n:5,  type:'riddle', name:'台語猜謎',   emoji:'🔍', pts:10, color:'#6b46c1',
+   questions:[
+    '謎題：\n「一粒珠，圓閣圓，大人囡仔攏愛看。」\n用台語說出謎底！（答案：月娘）',
+    '謎題：\n「紅門白壁鑽出去，搖頭擺尾弄撥撥。」\n用台語說出謎底！（答案：舌頭）',
+    '謎題：\n「有人行，無人搬，行到厝裡才知寒。」\n用台語說出謎底！（答案：風）']},
+
+  {n:6,  type:'task',   name:'台語繞口令', emoji:'👄', pts:15, color:'#2b6cb0',
+   questions:[
+    '說台語繞口令，連說 3 遍！\n\n「是獅是虎是獅虎，\n 是虎是獅是虎獅」',
+    '說台語繞口令，連說 3 遍！\n\n「大廟後有大土地，\n 小廟後有小土地」',
+    '說台語繞口令，連說 3 遍！\n\n「先生先生，先生說，\n 先生說先生念書先生」']},
+
+  {n:7,  type:'fortune',name:'命　運',     emoji:'🎴', pts:0,  color:'#c53030',
+   questions:['抽一張命運卡！']},
+
+  {n:8,  type:'task',   name:'台語成語',   emoji:'📚', pts:10, color:'#2b6cb0',
+   questions:[
+    '說出一個台語成語並解釋意思！\n例如：一人一家代、毋通糊塗、相招去散步',
+    '用台語說一句關於「勤勞」的諺語！\n例如：天公疼勤人、早起的鳥仔有蟲吃',
+    '用台語說一句關於「友情」的諺語！\n例如：有朋友遠方來、朋友是第二個家']},
+
+  {n:9,  type:'rest',   name:'休息一下',   emoji:'😴', pts:0,  color:'#4a5568',
+   questions:['休息一回合！下一次輪到你時跳過。\n（但可以為其他組加油！）\n大家用台語說：「好啦！歇睏一下！」']},
+
+  {n:10, type:'task',   name:'台語數數',   emoji:'🔢', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語從 1 數到 20！\n一、二、三…念得流暢才算過關！',
+    '用台語說出今天的日期！\n年、月、日都要說出來！',
+    '用台語從 20 倒數到 1！\n二十、十九、十八…一！念得流暢才過關！']},
+
+  {n:11, type:'chance', name:'機　會',     emoji:'⭐', pts:0,  color:'#b7791f',
+   questions:['抽一張機會卡！']},
+
+  {n:12, type:'task',   name:'台語自介',   emoji:'👋', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語做自我介紹！\n‧ 名字 ‧ 年紀 ‧ 學校班級 ‧ 一個喜好',
+    '用台語介紹你的家人！\n至少介紹三位（爸爸、媽媽、兄弟姊妹…）',
+    '用台語說說你的興趣和夢想！\n說一件最喜歡的事，以及長大想做什麼']},
+
+  {n:13, type:'song',   name:'台語童謠',   emoji:'🎶', pts:15, color:'#c05621',
+   questions:[
+    '表演台語童謠「丟丟銅仔」！\n（丟丟銅仔，伊都丟，阿末仔伊都丟串的路…）\n至少唱一段！',
+    '表演台語童謠「點仔膠」！\n（點仔膠，黏著腳，叫阿爸，買豬腳…）\n唱得愈完整愈好！',
+    '表演台語童謠「白鷺鷥」！\n（白鷺鷥，車畚箕，車到溪仔邊…）\n至少唱一段！']},
+
+  {n:14, type:'fortune',name:'命　運',     emoji:'🎴', pts:0,  color:'#c53030',
+   questions:['抽一張命運卡！']},
+
+  {n:15, type:'task',   name:'台語方向',   emoji:'🧭', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語說出東西南北、左右前後！\n全部說正確才算！',
+    '老師隨機指方向，你用台語喊出來！\n東西南北左右前後，全部答對才過關！',
+    '用台語說出「上下內外遠近」六個方位詞！\n說出來並用手比劃！']},
+
+  {n:16, type:'task',   name:'台語食物',   emoji:'🍜', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語說出 5 種傳統台灣食物名稱！\n（牛肉麵、滷肉飯、珍珠奶茶、鹽酥雞…）',
+    '用台語說出 5 種台灣夜市食物！\n並說說你最愛哪一種，用台語說理由！',
+    '用台語說出食物的五種味道！\n甜、酸、苦、辣、鹹\n各舉一種食物例子！']},
+
+  {n:17, type:'chance', name:'機　會',     emoji:'⭐', pts:0,  color:'#b7791f',
+   questions:['抽一張機會卡！']},
+
+  {n:18, type:'task',   name:'台語動物',   emoji:'🐾', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語說出 5 種動物名稱並模仿牠們的叫聲！\n（狗→汪汪、貓→喵喵、雞→咕咕…）',
+    '用台語說出 5 種農場動物！\n並說說牠們住哪裡、吃什麼！',
+    '用台語說出 5 種海洋生物！\n（魚、蝦、蟳、花枝、鯊魚）\n並模仿一種牠的游泳方式！']},
+
+  {n:19, type:'fortune',name:'命　運',     emoji:'🎴', pts:0,  color:'#c53030',
+   questions:['抽一張命運卡！']},
+
+  {n:20, type:'end',    name:'終　點',     emoji:'🏆', pts:20, color:'#b7791f',
+   questions:['恭喜到達終點！\n請用台語說：\n「多謝！咱攏是台語高手！」\n大家一起鼓掌！']},
 ];
 
 const CHANCE_CARDS = [
@@ -631,6 +703,9 @@ let G = {
   rolling: false,
   pendingCard: null,
   log: [],
+  squareQuestionsUsed: {},
+  finalRound: false,
+  finalRoundTeamsLeft: [],
   cfg: {
     url: APPS_SCRIPT_URL,
     sound: localStorage.getItem('cfg_sound') !== 'off',
@@ -745,6 +820,9 @@ function resumeSave(idx) {
   G.currentTeam = state.currentTeam;
   G.squares    = state.squares || [...SQUARES];
   G.log        = state.log || [];
+  G.squareQuestionsUsed = state.squareQuestionsUsed || {};
+  G.finalRound = state.finalRound || false;
+  G.finalRoundTeamsLeft = state.finalRoundTeamsLeft || [];
   G.phase      = 'roll';
   G.rolling    = false;
   showScreen('game');
@@ -779,6 +857,9 @@ function startGame() {
   G.phase = 'roll';
   G.rolling = false;
   G.log = [];
+  G.squareQuestionsUsed = {};
+  G.finalRound = false;
+  G.finalRoundTeamsLeft = [];
   document.getElementById('gh-class').textContent = `🎲 台語大富翁 - ${classId}`;
   showScreen('game');
   renderBoard();
@@ -950,7 +1031,6 @@ function landOnSquare(n) {
     const doneCount = G.teams.filter(t => t.finished).length;
     team.finished = true;
     team.finishOrder = doneCount + 1;
-    // 先到終點的組別獲得額外獎勵
     const orderBonus = [30, 20, 10, 0];
     const bonus = orderBonus[doneCount] || 0;
     team.score += sq.pts + bonus;
@@ -962,16 +1042,38 @@ function landOnSquare(n) {
     const allDone = G.teams.every(t => t.finished);
     if (allDone) {
       setTimeout(showGameOver, 1200);
-    } else {
-      const remain = G.teams.filter(t => !t.finished).map(t => t.name).join('、');
-      toast(`🏁 ${team.name} 到終點！+${bonus} 獎勵分！等待：${remain}`);
-      setTimeout(nextTurn, 2000);
+      return;
     }
+    // First team to finish: trigger Final Round for remaining teams
+    if (!G.finalRound) {
+      G.finalRound = true;
+      G.finalRoundTeamsLeft = G.teams.map((_,i) => i).filter(i => !G.teams[i].finished);
+      const names = G.finalRoundTeamsLeft.map(i => G.teams[i].name).join('、');
+      addLog(`🔔 最後一輪！${names} 各還有一次機會！`);
+      toast(`🏁 ${team.name} 到終點！最後一輪開始！${names} 各再一次！`);
+    } else {
+      toast(`🏁 ${team.name} 也到達終點了！`);
+    }
+    setTimeout(nextTurn, 2000);
   } else {
     // task, song, riddle
     G.phase = 'task';
     setTimeout(() => showTaskModal(sq), 500);
   }
+}
+
+// ── Pick question variant (rotate through pool, no repeat until all used) ──
+function pickQuestion(sq) {
+  if (!sq.questions || sq.questions.length === 0) return sq.desc || '';
+  if (sq.questions.length === 1) return sq.questions[0];
+  const key = sq.n;
+  if (!G.squareQuestionsUsed[key]) G.squareQuestionsUsed[key] = [];
+  const used = G.squareQuestionsUsed[key];
+  let pool = sq.questions.map((_,i) => i).filter(i => !used.includes(i));
+  if (pool.length === 0) { G.squareQuestionsUsed[key] = []; pool = sq.questions.map((_,i) => i); }
+  const idx = pool[Math.floor(Math.random() * pool.length)];
+  G.squareQuestionsUsed[key].push(idx);
+  return sq.questions[idx];
 }
 
 // ── Task modal ──
@@ -989,7 +1091,7 @@ function showTaskModal(sq) {
   document.getElementById('tm-badge').style.border = '1px solid ' + (badgeColors[sq.type]||'#4a5568') + '66';
   document.getElementById('tm-title').textContent = sq.name;
   document.getElementById('tm-team').textContent = `${team.char.emoji} ${team.name} 的挑戰！`;
-  document.getElementById('tm-desc').textContent = sq.desc;
+  document.getElementById('tm-desc').textContent = pickQuestion(sq);
   document.getElementById('tm-pts').innerHTML = `完成可獲得 <span>${sq.pts}</span> 分`;
   const timerEl = document.getElementById('task-timer');
   timerEl.style.display = G.cfg.timer ? '' : 'none';
@@ -1213,9 +1315,20 @@ function nextTurn() {
   G.phase = 'roll';
   G.rolling = false;
   document.getElementById('roll-btn').disabled = false;
-  // 若全部都已到終點（防呆）
   if (G.teams.every(t => t.finished)) { showGameOver(); return; }
-  // 找下一個還沒到終點的組
+
+  if (G.finalRound) {
+    // Remove the team that just finished their final-round turn
+    const idx = G.finalRoundTeamsLeft.indexOf(G.currentTeam);
+    if (idx >= 0) G.finalRoundTeamsLeft.splice(idx, 1);
+    if (G.finalRoundTeamsLeft.length === 0) { showGameOver(); return; }
+    G.currentTeam = G.finalRoundTeamsLeft[0];
+    renderScoreboard();
+    updateTurnBanner();
+    renderLog();
+    return;
+  }
+
   let next = (G.currentTeam + 1) % G.teams.length;
   let guard = 0;
   while (G.teams[next].finished && guard < G.teams.length) {
@@ -1236,6 +1349,13 @@ function updateTurnBanner() {
   const skipEl = document.getElementById('tb-skip');
   if (team.skipTurns > 0) {
     skipEl.textContent = `本回合休息（還剩 ${team.skipTurns} 次）`;
+    skipEl.style.color = '';
+    skipEl.style.background = '';
+    skipEl.style.display = '';
+  } else if (G.finalRound) {
+    skipEl.textContent = `🔔 最後一輪！剩 ${G.finalRoundTeamsLeft.length} 組`;
+    skipEl.style.color = '#f6c90e';
+    skipEl.style.background = 'rgba(246,201,14,.12)';
     skipEl.style.display = '';
   } else {
     skipEl.style.display = 'none';
@@ -1305,6 +1425,9 @@ function restartGame() {
   G.phase = 'roll';
   G.rolling = false;
   G.log = [];
+  G.squareQuestionsUsed = {};
+  G.finalRound = false;
+  G.finalRoundTeamsLeft = [];
   showScreen('game');
   renderBoard();
   renderTokens();
@@ -1331,6 +1454,9 @@ function doSave() {
     currentTeam: G.currentTeam,
     squares: G.squares,
     log: G.log,
+    squareQuestionsUsed: G.squareQuestionsUsed,
+    finalRound: G.finalRound,
+    finalRoundTeamsLeft: G.finalRoundTeamsLeft,
   };
   // Save locally
   const saves = getLocalSaves();
@@ -1369,7 +1495,10 @@ async function loadQuestionsFromSheets() {
     const res = await fetch(APPS_SCRIPT_URL + '?action=getQuestions');
     const data = await res.json();
     if (data.questions && data.questions.length) {
-      G.squares = data.questions;
+      G.squares = data.questions.map(sq => ({
+        ...sq,
+        questions: sq.questions || (sq.desc ? [sq.desc] : ['']),
+      }));
       renderBoard();
       renderTokens();
     }
