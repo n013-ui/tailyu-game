@@ -91,7 +91,7 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 .board-wrap{flex:1;padding:12px;display:flex;align-items:center;justify-content:center;min-height:0;overflow:auto}
 /* ── 大富翁環狀棋盤 ── */
 .board{display:grid;grid-template-columns:1.6fr repeat(8,1fr) 1.6fr;grid-template-rows:1.6fr repeat(8,1fr) 1.6fr;gap:3px;width:100%;max-width:min(96vw,800px);aspect-ratio:1}
-.board-center{grid-column:2/10;grid-row:2/10;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a3a6e 0%,#0f3460 60%,#0a2040 100%);border-radius:10px;border:2px solid rgba(246,201,14,.35);text-align:center;gap:8px;padding:14px;overflow:hidden;box-shadow:inset 0 0 40px rgba(0,0,0,.4)}
+.board-center{grid-column:2/10;grid-row:2/10;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:radial-gradient(ellipse at center,#1a3a6e 0%,#0f3460 60%,#0a2040 100%);border-radius:10px;border:2px solid rgba(246,201,14,.35);text-align:center;gap:6px;padding:10px 8px;overflow-y:auto;overflow-x:hidden;box-shadow:inset 0 0 40px rgba(0,0,0,.4)}
 .sq{border-radius:6px;padding:2px 2px 22px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;cursor:default;border:2px solid rgba(255,255,255,.1);transition:all .2s;min-width:0;overflow:hidden}
 .sq:hover{border-color:rgba(255,255,255,.4);transform:scale(1.04);z-index:5}
 .sq-corner{border-color:rgba(246,201,14,.45)!important;box-shadow:0 0 8px rgba(246,201,14,.25)}
@@ -119,8 +119,32 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 .sq-rest {background:linear-gradient(135deg,#2d3748,#4a5568)}
 
 /* ── SIDE PANEL ── */
-.side{width:300px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,.08);background:var(--bg2);overflow-y:auto;padding:14px}
+.side{width:200px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,.08);background:var(--bg2);overflow-y:auto;padding:10px}
 @media(max-width:900px){.side{width:100%;border-left:none;border-top:1px solid rgba(255,255,255,.08)}}
+
+/* board-center 裡的計分 */
+.bc-title{font-size:.7rem;font-weight:900;color:var(--gold);letter-spacing:2px;opacity:.7;margin-bottom:2px}
+.board-center .turn-banner{width:100%;margin-bottom:0;padding:7px 10px;box-sizing:border-box}
+.board-center .turn-banner .tb-team{font-size:1rem}
+.board-center .dice-area{gap:4px;margin-bottom:0}
+.board-center .dice-scene{width:70px;height:70px}
+.board-center .dice{width:62px;height:62px}
+.board-center .die-face{width:62px;height:62px}
+.board-center .face-front{transform:translateZ(31px)}
+.board-center .face-back {transform:rotateY(180deg) translateZ(31px)}
+.board-center .face-right{transform:rotateY(90deg) translateZ(31px)}
+.board-center .face-left {transform:rotateY(-90deg) translateZ(31px)}
+.board-center .face-top  {transform:rotateX(-90deg) translateZ(31px)}
+.board-center .face-bottom{transform:rotateX(90deg) translateZ(31px)}
+.board-center .dice-result-num{font-size:1.8rem;min-height:2.2rem}
+.board-center .btn-roll{padding:8px 22px;font-size:.85rem}
+.board-center .scoreboard{width:100%;margin-bottom:0;padding:7px 8px;box-sizing:border-box}
+.board-center .scoreboard h4{margin-bottom:6px;font-size:.65rem}
+.board-center .score-row{padding:4px 6px}
+.board-center .sr-emoji{font-size:1rem;width:22px}
+.board-center .sr-name{font-size:.75rem}
+.board-center .sr-pos{font-size:.62rem}
+.board-center .sr-score{font-size:.9rem}
 
 /* Current turn banner */
 .turn-banner{background:linear-gradient(135deg,rgba(246,201,14,.12),rgba(246,201,14,.06));border:1px solid rgba(246,201,14,.3);border-radius:10px;padding:12px;text-align:center;margin-bottom:14px}
@@ -364,60 +388,57 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
   </div>
 
   <div class="game-body">
-    <!-- Board -->
+    <!-- Board（中央面板嵌在棋盤內） -->
     <div class="board-wrap">
-      <div class="board" id="board"></div>
-    </div>
-
-    <!-- Side panel -->
-    <div class="side">
-      <!-- Current turn -->
-      <div class="turn-banner" id="turn-banner">
-        <div class="tb-label">目前輪到</div>
-        <div class="tb-team" id="tb-team">－</div>
-        <div class="tb-skip" id="tb-skip" style="display:none"></div>
-      </div>
-
-      <!-- Dice -->
-      <div class="dice-area">
-        <div class="dice-scene">
-          <div class="dice" id="dice">
-            <!-- Face 1 (front) -->
-            <div class="die-face face-front">
-              <div class="pips"><div class="pip c"></div></div>
+      <div class="board" id="board">
+        <!-- 棋盤中央：回合、骰子、計分 -->
+        <div class="board-center" id="board-center">
+          <div class="bc-title">台語大富翁</div>
+          <!-- Current turn -->
+          <div class="turn-banner" id="turn-banner">
+            <div class="tb-label">目前輪到</div>
+            <div class="tb-team" id="tb-team">－</div>
+            <div class="tb-skip" id="tb-skip" style="display:none"></div>
+          </div>
+          <!-- Dice -->
+          <div class="dice-area">
+            <div class="dice-scene">
+              <div class="dice" id="dice">
+                <div class="die-face face-front">
+                  <div class="pips"><div class="pip c"></div></div>
+                </div>
+                <div class="die-face face-right">
+                  <div class="pips"><div class="pip tl"></div><div class="pip br"></div></div>
+                </div>
+                <div class="die-face face-top">
+                  <div class="pips"><div class="pip tl"></div><div class="pip c"></div><div class="pip br"></div></div>
+                </div>
+                <div class="die-face face-back" style="background:#b71c1c">
+                  <div class="pips"><div class="pip tl"></div><div class="pip tr"></div><div class="pip ml"></div><div class="pip mr"></div></div>
+                </div>
+                <div class="die-face face-left" style="background:#c62828">
+                  <div class="pips"><div class="pip tl"></div><div class="pip br"></div><div class="pip tr"></div><div class="pip bl"></div><div class="pip c"></div></div>
+                </div>
+                <div class="die-face face-bottom" style="background:#b71c1c">
+                  <div class="pips"><div class="pip tl"></div><div class="pip br"></div><div class="pip tr"></div><div class="pip bl"></div><div class="pip ml"></div><div class="pip mr"></div></div>
+                </div>
+              </div>
             </div>
-            <!-- Face 2 (right): shows when rotated left -90deg -->
-            <div class="die-face face-right">
-              <div class="pips"><div class="pip tl"></div><div class="pip br"></div></div>
-            </div>
-            <!-- Face 3 (top): shows when rotated down 90deg -->
-            <div class="die-face face-top">
-              <div class="pips"><div class="pip tl"></div><div class="pip c"></div><div class="pip br"></div></div>
-            </div>
-            <!-- Decorative back/left/bottom faces -->
-            <div class="die-face face-back" style="background:#b71c1c">
-              <div class="pips"><div class="pip tl"></div><div class="pip tr"></div><div class="pip ml"></div><div class="pip mr"></div></div>
-            </div>
-            <div class="die-face face-left" style="background:#c62828">
-              <div class="pips"><div class="pip tl"></div><div class="pip br"></div><div class="pip tr"></div><div class="pip bl"></div><div class="pip c"></div></div>
-            </div>
-            <div class="die-face face-bottom" style="background:#b71c1c">
-              <div class="pips"><div class="pip tl"></div><div class="pip br"></div><div class="pip tr"></div><div class="pip bl"></div><div class="pip ml"></div><div class="pip mr"></div></div>
-            </div>
+            <div class="dice-result-num" id="dice-num">🎲</div>
+            <button class="btn-roll" id="roll-btn" onclick="rollDice()">擲　骰　子</button>
+          </div>
+          <!-- Scoreboard -->
+          <div class="scoreboard">
+            <h4>積分排名</h4>
+            <div id="scoreboard"></div>
           </div>
         </div>
-        <div class="dice-result-num" id="dice-num">🎲</div>
-        <button class="btn-roll" id="roll-btn" onclick="rollDice()">擲　骰　子</button>
       </div>
+    </div>
 
-      <!-- Scoreboard -->
-      <div class="scoreboard">
-        <h4>積分排名</h4>
-        <div id="scoreboard"></div>
-      </div>
-
-      <!-- Log -->
-      <div class="game-log">
+    <!-- Side panel：只留遊戲記錄 -->
+    <div class="side">
+      <div class="game-log" style="flex:1">
         <h4>遊戲記錄</h4>
         <div class="log-list" id="log-list"></div>
       </div>
@@ -1007,7 +1028,8 @@ function getGridPos(n) {
 
 function renderBoard() {
   const board = document.getElementById('board');
-  board.innerHTML = '';
+  // 只移除格子，保留中央面板
+  board.querySelectorAll('.sq').forEach(el => el.remove());
   const CORNERS = new Set([1, 10, 19, 28]);
   G.squares.forEach(sq => {
     const {gridRow, gridCol} = getGridPos(sq.n);
@@ -1025,16 +1047,6 @@ function renderBoard() {
     div.onclick = () => showSquareInfo(sq.n);
     board.appendChild(div);
   });
-  // 棋盤中央裝飾
-  const center = document.createElement('div');
-  center.className = 'board-center';
-  center.innerHTML = `
-    <div style="font-size:2.8rem;line-height:1;filter:drop-shadow(0 0 10px rgba(246,201,14,.5))">🎲</div>
-    <div style="font-size:1.05rem;font-weight:900;color:var(--gold);letter-spacing:3px;text-shadow:0 0 15px rgba(246,201,14,.6)">台語大富翁</div>
-    <div style="width:55%;height:2px;background:linear-gradient(to right,transparent,rgba(246,201,14,.6),transparent)"></div>
-    <div style="font-size:.62rem;color:var(--muted);letter-spacing:1px">說台語・學文化・玩得開心</div>
-    <div style="font-size:.55rem;color:rgba(240,230,211,.35);margin-top:4px">▶ 起點在右下角</div>`;
-  board.appendChild(center);
 }
 
 function darken(hex) {
