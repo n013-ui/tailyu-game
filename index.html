@@ -89,18 +89,18 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 
 /* ── BOARD ── */
 .board-wrap{flex:1;padding:12px;display:flex;align-items:center;justify-content:center;min-height:0;overflow:auto}
-/* ── 大富翁環狀棋盤 ── */
-.board{display:grid;grid-template-columns:1.6fr repeat(8,1fr) 1.6fr;grid-template-rows:1.6fr repeat(8,1fr) 1.6fr;gap:3px;width:100%;max-width:min(96vw,800px);aspect-ratio:1}
-.board-center{grid-column:2/10;grid-row:2/10;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:radial-gradient(ellipse at center,#1a3a6e 0%,#0f3460 60%,#0a2040 100%);border-radius:10px;border:2px solid rgba(246,201,14,.35);text-align:center;gap:6px;padding:10px 8px;overflow-y:auto;overflow-x:hidden;box-shadow:inset 0 0 40px rgba(0,0,0,.4)}
+/* ── 大富翁環狀棋盤（橫向 3:2，上下 12 格，左右 8 格含角） ── */
+.board{display:grid;grid-template-columns:1.6fr repeat(10,1fr) 1.6fr;grid-template-rows:1.6fr repeat(6,1fr) 1.6fr;gap:3px;width:100%;max-width:min(96vw,960px);aspect-ratio:3/2}
+.board-center{grid-column:2/12;grid-row:2/8;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:radial-gradient(ellipse at center,#1a3a6e 0%,#0f3460 60%,#0a2040 100%);border-radius:10px;border:2px solid rgba(246,201,14,.35);text-align:center;gap:6px;padding:10px 8px;overflow-y:auto;overflow-x:hidden;box-shadow:inset 0 0 40px rgba(0,0,0,.4)}
 .sq{border-radius:6px;padding:2px 2px 22px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;cursor:default;border:2px solid rgba(255,255,255,.1);transition:all .2s;min-width:0;overflow:hidden}
 .sq:hover{border-color:rgba(255,255,255,.4);transform:scale(1.04);z-index:5}
 .sq-corner{border-color:rgba(246,201,14,.45)!important;box-shadow:0 0 8px rgba(246,201,14,.25)}
-/* 左右欄格子：縮小內容避免截斷 */
-.sq-side{padding-bottom:16px}
-.sq-side .sq-num{font-size:.55rem;top:1px;left:3px}
-.sq-side .sq-emoji{font-size:.6rem;margin-top:4px;margin-bottom:1px}
-.sq-side .sq-name{font-size:.45rem;line-height:1.1}
-.sq-side .sq-tokens{min-height:14px}
+/* 左右欄格子（6格，每格較高）：稍縮以保留空間 */
+.sq-side{padding-bottom:18px}
+.sq-side .sq-num{font-size:.65rem;top:2px;left:3px}
+.sq-side .sq-emoji{font-size:.85rem;margin-top:5px;margin-bottom:1px}
+.sq-side .sq-name{font-size:.5rem;line-height:1.15}
+.sq-side .sq-tokens{min-height:16px}
 .sq .sq-num{position:absolute;top:2px;left:4px;font-size:1.1rem;font-weight:700;opacity:.75;line-height:1}
 .sq .sq-emoji{font-size:2.2rem;line-height:1;margin-top:14px;margin-bottom:2px}
 .sq .sq-name{font-size:1rem;text-align:center;line-height:1.15;opacity:.9;font-weight:700;word-break:keep-all}
@@ -310,17 +310,16 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 /* Mobile tweaks */
 @media(max-width:900px){
   .board-wrap{min-height:0}
-  .board{max-width:min(100%,calc(100vh - 220px))}
-  .sq .sq-emoji{font-size:1.6rem}
-  .sq .sq-name{font-size:.72rem}
-  .sq .sq-num{font-size:.8rem}
-  .board-center{gap:5px}
-}
-@media(max-width:480px){
-  .sq .sq-emoji{font-size:1.1rem}
-  .sq .sq-name{font-size:.55rem}
+  .board{max-width:min(98vw,calc((100vh - 180px) * 3/2))}
+  .sq .sq-emoji{font-size:1.3rem}
+  .sq .sq-name{font-size:.6rem}
   .sq .sq-num{font-size:.65rem}
-  .sq .sq-tokens{min-height:16px}
+  .board-center{gap:4px}
+}
+@media(max-width:600px){
+  .sq .sq-emoji{font-size:.9rem}
+  .sq .sq-name{font-size:.44rem}
+  .sq .sq-tokens{min-height:14px}
   .token{width:13px;height:13px;font-size:.5rem;border-width:2px}
 }
 @media(max-width:480px){
@@ -1024,20 +1023,20 @@ function startGame() {
 // ══════════════════════════════════
 
 function getGridPos(n) {
-  // 大富翁環狀排列：外圈順時針，起點在右下角
-  // 底列右→左(n=1~10)、左欄下→上(n=11~18)、頂列左→右(n=19~28)、右欄上→下(n=29~36)
-  if (n <= 10)  return { gridRow: 10, gridCol: 11 - n };
-  if (n <= 18)  return { gridRow: 10 - (n - 10), gridCol: 1 };
-  if (n <= 28)  return { gridRow: 1,  gridCol: n - 18 };
-  return             { gridRow: n - 27, gridCol: 10 };
+  // 橫向長方形（3:2）環狀排列，起點在右下角
+  // 底列右→左(n=1~12)、左欄下→上(n=13~18)、頂列左→右(n=19~30)、右欄上→下(n=31~36)
+  if (n <= 12)  return { gridRow: 8, gridCol: 13 - n };
+  if (n <= 18)  return { gridRow: 8 - (n - 12), gridCol: 1 };
+  if (n <= 30)  return { gridRow: 1,  gridCol: n - 18 };
+  return             { gridRow: n - 29, gridCol: 12 };
 }
 
 function renderBoard() {
   const board = document.getElementById('board');
   // 只移除格子，保留中央面板
   board.querySelectorAll('.sq').forEach(el => el.remove());
-  const CORNERS = new Set([1, 10, 19, 28]);
-  const SIDES   = new Set([11,12,13,14,15,16,17,18, 29,30,31,32,33,34,35,36]);
+  const CORNERS = new Set([1, 12, 19, 30]);
+  const SIDES   = new Set([13,14,15,16,17,18, 31,32,33,34,35,36]);
   G.squares.forEach(sq => {
     const {gridRow, gridCol} = getGridPos(sq.n);
     const div = document.createElement('div');
