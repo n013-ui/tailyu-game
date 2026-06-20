@@ -95,9 +95,9 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 .sq{border-radius:6px;padding:3px 3px 20px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;cursor:default;border:2px solid rgba(255,255,255,.1);transition:all .2s;min-width:0}
 .sq:hover{border-color:rgba(255,255,255,.4);transform:scale(1.04);z-index:5}
 .sq-corner{border-color:rgba(246,201,14,.45)!important;box-shadow:0 0 8px rgba(246,201,14,.25)}
-.sq .sq-num{position:absolute;top:2px;left:4px;font-size:.5rem;font-weight:700;opacity:.7;line-height:1}
-.sq .sq-emoji{font-size:.95rem;line-height:1;margin-top:6px;margin-bottom:1px}
-.sq .sq-name{font-size:.4rem;text-align:center;line-height:1.2;opacity:.85;font-weight:600}
+.sq .sq-num{position:absolute;top:2px;left:4px;font-size:.65rem;font-weight:700;opacity:.75;line-height:1}
+.sq .sq-emoji{font-size:1.25rem;line-height:1;margin-top:5px;margin-bottom:2px}
+.sq .sq-name{font-size:.52rem;text-align:center;line-height:1.2;opacity:.9;font-weight:700}
 /* Token strip 固定在格子底部 */
 .sq .sq-tokens{position:absolute;bottom:0;left:0;right:0;min-height:20px;display:flex;gap:2px;flex-wrap:wrap;justify-content:center;align-items:center;padding:2px;border-radius:0 0 4px 4px;border-top:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.3)}
 .sq .sq-tokens:empty{background:rgba(0,0,0,.12);border-top-color:rgba(255,255,255,.05)}
@@ -281,13 +281,13 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 @media(max-width:900px){
   .board-wrap{min-height:0}
   .board{max-width:min(100%,calc(100vh - 260px))}
-  .sq .sq-emoji{font-size:.85rem}
-  .sq .sq-name{font-size:.36rem}
+  .sq .sq-emoji{font-size:1.05rem}
+  .sq .sq-name{font-size:.44rem}
   .board-center{gap:5px}
 }
 @media(max-width:480px){
-  .sq .sq-name{display:none}
-  .sq .sq-emoji{font-size:.75rem}
+  .sq .sq-name{font-size:.38rem}
+  .sq .sq-emoji{font-size:.85rem}
   .sq .sq-tokens{min-height:16px}
   .token{width:13px;height:13px;font-size:.5rem;border-width:2px}
 }
