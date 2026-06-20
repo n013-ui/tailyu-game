@@ -90,14 +90,14 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 /* ── BOARD ── */
 .board-wrap{flex:1;padding:12px;display:flex;align-items:center;justify-content:center;min-height:0;overflow:auto}
 /* ── 大富翁環狀棋盤 ── */
-.board{display:grid;grid-template-columns:1.6fr repeat(8,1fr) 1.6fr;grid-template-rows:1.6fr repeat(8,1fr) 1.6fr;gap:3px;width:100%;max-width:660px;aspect-ratio:1}
+.board{display:grid;grid-template-columns:1.6fr repeat(8,1fr) 1.6fr;grid-template-rows:1.6fr repeat(8,1fr) 1.6fr;gap:3px;width:100%;max-width:min(96vw,800px);aspect-ratio:1}
 .board-center{grid-column:2/10;grid-row:2/10;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a3a6e 0%,#0f3460 60%,#0a2040 100%);border-radius:10px;border:2px solid rgba(246,201,14,.35);text-align:center;gap:8px;padding:14px;overflow:hidden;box-shadow:inset 0 0 40px rgba(0,0,0,.4)}
-.sq{border-radius:6px;padding:3px 3px 20px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;cursor:default;border:2px solid rgba(255,255,255,.1);transition:all .2s;min-width:0}
+.sq{border-radius:6px;padding:2px 2px 22px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;cursor:default;border:2px solid rgba(255,255,255,.1);transition:all .2s;min-width:0;overflow:hidden}
 .sq:hover{border-color:rgba(255,255,255,.4);transform:scale(1.04);z-index:5}
 .sq-corner{border-color:rgba(246,201,14,.45)!important;box-shadow:0 0 8px rgba(246,201,14,.25)}
-.sq .sq-num{position:absolute;top:2px;left:4px;font-size:.65rem;font-weight:700;opacity:.75;line-height:1}
-.sq .sq-emoji{font-size:1.25rem;line-height:1;margin-top:5px;margin-bottom:2px}
-.sq .sq-name{font-size:.52rem;text-align:center;line-height:1.2;opacity:.9;font-weight:700}
+.sq .sq-num{position:absolute;top:2px;left:4px;font-size:1.1rem;font-weight:700;opacity:.75;line-height:1}
+.sq .sq-emoji{font-size:2.2rem;line-height:1;margin-top:14px;margin-bottom:2px}
+.sq .sq-name{font-size:1rem;text-align:center;line-height:1.15;opacity:.9;font-weight:700;word-break:keep-all}
 /* Token strip 固定在格子底部 */
 .sq .sq-tokens{position:absolute;bottom:0;left:0;right:0;min-height:20px;display:flex;gap:2px;flex-wrap:wrap;justify-content:center;align-items:center;padding:2px;border-radius:0 0 4px 4px;border-top:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.3)}
 .sq .sq-tokens:empty{background:rgba(0,0,0,.12);border-top-color:rgba(255,255,255,.05)}
@@ -280,14 +280,16 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 /* Mobile tweaks */
 @media(max-width:900px){
   .board-wrap{min-height:0}
-  .board{max-width:min(100%,calc(100vh - 260px))}
-  .sq .sq-emoji{font-size:1.05rem}
-  .sq .sq-name{font-size:.44rem}
+  .board{max-width:min(100%,calc(100vh - 220px))}
+  .sq .sq-emoji{font-size:1.6rem}
+  .sq .sq-name{font-size:.72rem}
+  .sq .sq-num{font-size:.8rem}
   .board-center{gap:5px}
 }
 @media(max-width:480px){
-  .sq .sq-name{font-size:.38rem}
-  .sq .sq-emoji{font-size:.85rem}
+  .sq .sq-emoji{font-size:1.1rem}
+  .sq .sq-name{font-size:.55rem}
+  .sq .sq-num{font-size:.65rem}
   .sq .sq-tokens{min-height:16px}
   .token{width:13px;height:13px;font-size:.5rem;border-width:2px}
 }
