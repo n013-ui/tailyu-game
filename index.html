@@ -89,7 +89,7 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 
 /* ── BOARD ── */
 .board-wrap{flex:1;padding:12px;display:flex;align-items:center;justify-content:center;min-height:0;overflow:auto}
-.board{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);gap:5px;width:100%;max-width:520px;aspect-ratio:1}
+.board{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(7,1fr);gap:5px;width:100%;max-width:520px;aspect-ratio:5/7}
 .sq{border-radius:8px;padding:4px 4px 28px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;cursor:default;border:2px solid rgba(255,255,255,.08);transition:all .2s;min-width:0}
 .sq:hover{border-color:rgba(255,255,255,.35);transform:scale(1.03);z-index:2}
 .sq .sq-num{position:absolute;top:3px;left:5px;font-size:.6rem;font-weight:700;opacity:.65;line-height:1}
@@ -620,8 +620,12 @@ const SQUARES = [
     '用台語說一句關於「友情」的諺語！\n例如：有朋友遠方來、朋友是第二個家',
     '用台語說一句關於「家庭」的諺語！\n例如：家和萬事興、父母恩深似海\n說說意思！']},
 
-  {n:9,  type:'rest',   name:'休息一下',   emoji:'😴', pts:0,  color:'#4a5568',
-   questions:['休息一回合！下一次輪到你時跳過。\n大家用台語說：「好啦！歇睏一下！」']},
+  {n:9,  type:'task',   name:'台語禮貌',   emoji:'🙏', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語說出常用的禮貌語！\n‧ 多謝（謝謝）\n‧ 毋好勢（不好意思）\n‧ 請問（請問）\n‧ 對不住（對不起）',
+    '用台語向長輩打招呼並道謝！\n說「阿公/阿媽，你好！」再說「多謝你！」\n共說 3 句以上！',
+    '用台語說出用餐禮貌用語！\n‧ 食飯囉！‧ 多謝款待！‧ 足好食！\n說說看！',
+    '用台語演練訪客禮貌對話！\n「請入來！」「請坐！」「免客氣！」\n全部說出來！']},
 
   {n:10, type:'task',   name:'台語數數',   emoji:'🔢', pts:10, color:'#2b6cb0',
    questions:[
@@ -704,7 +708,77 @@ const SQUARES = [
   {n:24, type:'fortune',name:'命　運',     emoji:'🎴', pts:0,  color:'#c53030',
    questions:['抽一張命運卡！']},
 
-  {n:25, type:'end',    name:'終　點',     emoji:'🏆', pts:20, color:'#b7791f',
+  {n:25, type:'task',   name:'台語天氣',   emoji:'⛅', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語說出四種天氣！\n晴天、陰天、落雨（下雨）、落雪（下雪）\n再說今天的天氣如何！',
+    '用台語描述颱風天！\n說出颱風的台語，並描述颱風天有哪些情形！\n至少說 4 句！',
+    '用台語說出一年四季的天氣特色！\n春天、夏天、秋天、冬天各一句！',
+    '用台語說今天的氣溫感受！\n熱、冷、涼爽、悶熱\n各造一個台語短句！']},
+
+  {n:26, type:'task',   name:'台語顏色',   emoji:'🎨', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語說出彩虹的七個顏色！\n紅、橙、黃、綠、藍、靛、紫\n全部說出來！',
+    '用台語說出 5 種顏色，並各舉一個例子！\n例如：紅色 → 番茄、蘋果',
+    '老師說顏色的中文，你立刻用台語說出！\n連答 7 個才過關！',
+    '用台語說出你最喜歡的顏色，並解釋為什麼！\n至少說 3 句台語！']},
+
+  {n:27, type:'song',   name:'台語歌謠',   emoji:'🎵', pts:15, color:'#c05621',
+   questions:[
+    '用台語唱「桃花過渡」！\n（正月桃花開，三哥伊都，行到渡船頭…）\n至少唱 4 句！',
+    '用台語唱「思念故鄉」或任何一首台語老歌！\n至少 4 句！',
+    '用台語唱「孤戀花」！\n（風微微，雨微微，夢中花落知多少…）\n至少唱 4 句！',
+    '用台語唱你最喜歡的台語歌曲！\n唱完後說說這首歌的意思！']},
+
+  {n:28, type:'task',   name:'台語職業',   emoji:'👷', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語說出 5 種職業名稱！\n（老師、醫生、農夫、警察、廚師）',
+    '用台語介紹你長大想做的職業！\n說出職業名稱和原因，至少 3 句！',
+    '用台語說出 5 種傳統台灣職業！\n（漁夫、農夫、鐵匠、中藥師、布商）\n說說他們做什麼！',
+    '老師說職業的工作內容，你用台語猜出是什麼職業！\n連猜對 3 個才過關！']},
+
+  {n:29, type:'task',   name:'台語家庭',   emoji:'👨‍👩‍👧', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語說出家庭成員稱謂！\n爸爸、媽媽、阿公、阿媽、兄、姊、弟、妹\n全部說出來！',
+    '用台語介紹你的家庭！\n說出家人人數、稱謂，各一句介紹，至少說 4 句！',
+    '用台語說出台灣傳統家庭的規矩或禮儀！\n例如：長幼有序、孝順父母\n說出 3 個！',
+    '用台語說說家人之間常用的對話！\n例如早安、吃飯了嗎等，說出 5 句！']},
+
+  {n:30, type:'task',   name:'台語交通',   emoji:'🚌', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語說出 5 種交通工具！\n（腳踏車、機車、公車、火車、飛機）',
+    '用台語說說你每天如何上學！\n說出交通工具和路程，至少 3 句！',
+    '用台語演練搭公車的對話！\n「請問到○○要偌濟錢？」「多謝！」全部說出！',
+    '用台語說出台灣常見的傳統交通方式！\n（牛車、竹筏、船仔）各說一句介紹！']},
+
+  {n:31, type:'task',   name:'台語學校',   emoji:'🏫', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語說出 5 種學校科目！\n（國語、數學、自然、社會、體育）',
+    '用台語說說你今天在學校發生的一件事！\n至少說 4 句台語！',
+    '用台語說出教室裡的 7 種物品！\n（桌、椅、黑板、粉筆、書包、鉛筆、橡皮擦）',
+    '用台語介紹你的學校！\n校名、年級、最喜歡的科目，至少說 4 句！']},
+
+  {n:32, type:'song',   name:'台語歌謠',   emoji:'🎤', pts:15, color:'#c05621',
+   questions:[
+    '用台語唱「阮若打開心內的門窗」！\n（阮若打開心內的門窗，就會看見五彩的春光…）\n至少唱 4 句！',
+    '全組一起用台語唱任何一首台語歌！\n至少唱 4 句，要齊唱！',
+    '用台語唱「快樂的出帆」！\n（快樂的出帆，在這個早晨…）\n至少唱 4 句！',
+    '用台語唱你們最喜歡的台語歌曲！\n唱完後說說這首歌的意思！']},
+
+  {n:33, type:'task',   name:'台語購物',   emoji:'🛒', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語演練市場購物！\n「這個偌濟錢？」「有較便宜的無？」「多謝！」',
+    '用台語說出 5 種市場常見的蔬菜！\n（白菜、番茄、紅蘿蔔、馬鈴薯、高麗菜）',
+    '用台語說出 5 種水果的名稱！\n（蘋果、香蕉、鳳梨、木瓜、芒果）',
+    '用台語演練討價還價的對話！\n說出買家和賣家的台語對話，至少 4 句！']},
+
+  {n:34, type:'task',   name:'台語節慶',   emoji:'🎊', pts:10, color:'#2b6cb0',
+   questions:[
+    '用台語說出三個台灣重要節日！\n（農曆新年、端午節、中秋節）\n說說各節日做什麼！',
+    '用台語說出農曆新年的習俗！\n（穿新衣、包紅包、貼春聯、拜年）各說一句！',
+    '用台語說出中秋節的習俗！\n（賞月、吃月餅、烤肉、提燈籠）各說一句！',
+    '用台語說出端午節的習俗！\n（吃粽子、龍舟競賽、掛菖蒲）各說一句！']},
+
+  {n:35, type:'end',    name:'終　點',     emoji:'🏆', pts:20, color:'#b7791f',
    questions:['恭喜到達終點！\n請用台語說：\n「多謝！咱攏是台語高手！」\n大家一起鼓掌！']},
 ];
 
@@ -917,7 +991,7 @@ function getGridPos(n) {
   const idx = n - 1;
   const row = Math.floor(idx / 5);
   const col = idx % 5;
-  const gridRow = 5 - row;
+  const gridRow = 7 - row;
   const gridCol = (row % 2 === 0) ? col + 1 : 5 - col;
   return {gridRow, gridCol};
 }
@@ -1033,7 +1107,7 @@ function rollDice() {
 
 function movePlayer(steps) {
   const team = G.teams[G.currentTeam];
-  const newPos = Math.min(team.pos + steps, 25);
+  const newPos = Math.min(team.pos + steps, 35);
   let current = team.pos;
   const interval = setInterval(() => {
     current = Math.min(current + 1, newPos);
@@ -1257,13 +1331,13 @@ function applyCardEffect(card, type, team) {
   addLog(`${team.char.emoji} ${team.name} 抽到${type==='chance'?'機會':'命運'}卡：${card.emoji} ${card.label||card.text.split('\n')[0]}`);
   switch(card.effect) {
     case 'move': {
-      const newPos = Math.max(1, Math.min(25, team.pos + card.val));
+      const newPos = Math.max(1, Math.min(35, team.pos + card.val));
       team.pos = newPos;
       renderTokens();
       highlightSquare(newPos);
       addLog(`  → 移動到第 ${newPos} 格`);
       renderScoreboard();
-      if (newPos === 25) { setTimeout(() => landOnSquare(25), 600); return; }
+      if (newPos === 35) { setTimeout(() => landOnSquare(35), 600); return; }
       if (card.val !== 0) { setTimeout(() => landOnSquare(newPos), 800); return; }
       break;
     }
