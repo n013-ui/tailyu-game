@@ -89,17 +89,20 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 
 /* ── BOARD ── */
 .board-wrap{flex:1;padding:12px;display:flex;align-items:center;justify-content:center;min-height:0;overflow:auto}
-.board{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(7,1fr);gap:5px;width:100%;max-width:520px;aspect-ratio:5/7}
-.sq{border-radius:8px;padding:4px 4px 28px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;cursor:default;border:2px solid rgba(255,255,255,.08);transition:all .2s;min-width:0}
-.sq:hover{border-color:rgba(255,255,255,.35);transform:scale(1.03);z-index:2}
-.sq .sq-num{position:absolute;top:3px;left:5px;font-size:.6rem;font-weight:700;opacity:.65;line-height:1}
-.sq .sq-emoji{font-size:1.3rem;line-height:1;margin-top:10px;margin-bottom:1px}
-.sq .sq-name{font-size:.55rem;text-align:center;line-height:1.2;opacity:.85;font-weight:600}
+/* ── 大富翁環狀棋盤 ── */
+.board{display:grid;grid-template-columns:1.6fr repeat(8,1fr) 1.6fr;grid-template-rows:1.6fr repeat(8,1fr) 1.6fr;gap:3px;width:100%;max-width:660px;aspect-ratio:1}
+.board-center{grid-column:2/10;grid-row:2/10;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a3a6e 0%,#0f3460 60%,#0a2040 100%);border-radius:10px;border:2px solid rgba(246,201,14,.35);text-align:center;gap:8px;padding:14px;overflow:hidden;box-shadow:inset 0 0 40px rgba(0,0,0,.4)}
+.sq{border-radius:6px;padding:3px 3px 20px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;cursor:default;border:2px solid rgba(255,255,255,.1);transition:all .2s;min-width:0}
+.sq:hover{border-color:rgba(255,255,255,.4);transform:scale(1.04);z-index:5}
+.sq-corner{border-color:rgba(246,201,14,.45)!important;box-shadow:0 0 8px rgba(246,201,14,.25)}
+.sq .sq-num{position:absolute;top:2px;left:4px;font-size:.5rem;font-weight:700;opacity:.7;line-height:1}
+.sq .sq-emoji{font-size:.95rem;line-height:1;margin-top:6px;margin-bottom:1px}
+.sq .sq-name{font-size:.4rem;text-align:center;line-height:1.2;opacity:.85;font-weight:600}
 /* Token strip 固定在格子底部 */
-.sq .sq-tokens{position:absolute;bottom:0;left:0;right:0;min-height:26px;display:flex;gap:3px;flex-wrap:wrap;justify-content:center;align-items:center;padding:2px 3px;border-radius:0 0 6px 6px;border-top:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.3)}
+.sq .sq-tokens{position:absolute;bottom:0;left:0;right:0;min-height:20px;display:flex;gap:2px;flex-wrap:wrap;justify-content:center;align-items:center;padding:2px;border-radius:0 0 4px 4px;border-top:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.3)}
 .sq .sq-tokens:empty{background:rgba(0,0,0,.12);border-top-color:rgba(255,255,255,.05)}
 /* Token 圓形棋子：每組不同顏色邊框 */
-.token{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.6),0 2px 5px rgba(0,0,0,.7);background:rgba(8,12,25,.9);flex-shrink:0;transition:transform .15s}
+.token{width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.6),0 2px 5px rgba(0,0,0,.7);background:rgba(8,12,25,.9);flex-shrink:0;transition:transform .15s}
 .token:hover{transform:scale(1.2);z-index:5}
 .sq.highlight-move{animation:sqpulse .4s ease}
 @keyframes sqpulse{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
@@ -276,22 +279,23 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 
 /* Mobile tweaks */
 @media(max-width:900px){
-  .board-wrap{min-height:320px}
-  .board{max-width:100%}
-  .sq .sq-emoji{font-size:1.1rem}
-  .sq .sq-name{font-size:.5rem}
+  .board-wrap{min-height:0}
+  .board{max-width:min(100%,calc(100vh - 260px))}
+  .sq .sq-emoji{font-size:.85rem}
+  .sq .sq-name{font-size:.36rem}
+  .board-center{gap:5px}
 }
 @media(max-width:480px){
-  .sq{padding-bottom:22px}
-  .sq .sq-tokens{min-height:20px}
-  .token{width:17px;height:17px;font-size:.6rem;border-width:2px}
+  .sq .sq-name{display:none}
+  .sq .sq-emoji{font-size:.75rem}
+  .sq .sq-tokens{min-height:16px}
+  .token{width:13px;height:13px;font-size:.5rem;border-width:2px}
 }
 @media(max-width:480px){
   .game-logo h1{font-size:1.8rem}
   .setup-section{padding:14px}
   .modal{border-radius:12px}
   .side{padding:10px}
-  .token{width:14px;height:14px;font-size:.55rem}
 }
 </style>
 </head>
@@ -778,7 +782,10 @@ const SQUARES = [
     '用台語說出中秋節的習俗！\n（賞月、吃月餅、烤肉、提燈籠）各說一句！',
     '用台語說出端午節的習俗！\n（吃粽子、龍舟競賽、掛菖蒲）各說一句！']},
 
-  {n:35, type:'end',    name:'終　點',     emoji:'🏆', pts:20, color:'#b7791f',
+  {n:35, type:'chance', name:'機　會',     emoji:'⭐', pts:0,  color:'#b7791f',
+   questions:['抽一張機會卡！']},
+
+  {n:36, type:'end',    name:'終　點',     emoji:'🏆', pts:20, color:'#b7791f',
    questions:['恭喜到達終點！\n請用台語說：\n「多謝！咱攏是台語高手！」\n大家一起鼓掌！']},
 ];
 
@@ -988,21 +995,22 @@ function startGame() {
 // ══════════════════════════════════
 
 function getGridPos(n) {
-  const idx = n - 1;
-  const row = Math.floor(idx / 5);
-  const col = idx % 5;
-  const gridRow = 7 - row;
-  const gridCol = (row % 2 === 0) ? col + 1 : 5 - col;
-  return {gridRow, gridCol};
+  // 大富翁環狀排列：外圈順時針，起點在右下角
+  // 底列右→左(n=1~10)、左欄下→上(n=11~18)、頂列左→右(n=19~28)、右欄上→下(n=29~36)
+  if (n <= 10)  return { gridRow: 10, gridCol: 11 - n };
+  if (n <= 18)  return { gridRow: 10 - (n - 10), gridCol: 1 };
+  if (n <= 28)  return { gridRow: 1,  gridCol: n - 18 };
+  return             { gridRow: n - 27, gridCol: 10 };
 }
 
 function renderBoard() {
   const board = document.getElementById('board');
   board.innerHTML = '';
+  const CORNERS = new Set([1, 10, 19, 28]);
   G.squares.forEach(sq => {
     const {gridRow, gridCol} = getGridPos(sq.n);
     const div = document.createElement('div');
-    div.className = `sq sq-${sq.type}`;
+    div.className = `sq sq-${sq.type}${CORNERS.has(sq.n) ? ' sq-corner' : ''}`;
     div.id = `sq-${sq.n}`;
     div.style.gridRow = gridRow;
     div.style.gridColumn = gridCol;
@@ -1015,6 +1023,16 @@ function renderBoard() {
     div.onclick = () => showSquareInfo(sq.n);
     board.appendChild(div);
   });
+  // 棋盤中央裝飾
+  const center = document.createElement('div');
+  center.className = 'board-center';
+  center.innerHTML = `
+    <div style="font-size:2.8rem;line-height:1;filter:drop-shadow(0 0 10px rgba(246,201,14,.5))">🎲</div>
+    <div style="font-size:1.05rem;font-weight:900;color:var(--gold);letter-spacing:3px;text-shadow:0 0 15px rgba(246,201,14,.6)">台語大富翁</div>
+    <div style="width:55%;height:2px;background:linear-gradient(to right,transparent,rgba(246,201,14,.6),transparent)"></div>
+    <div style="font-size:.62rem;color:var(--muted);letter-spacing:1px">說台語・學文化・玩得開心</div>
+    <div style="font-size:.55rem;color:rgba(240,230,211,.35);margin-top:4px">▶ 起點在右下角</div>`;
+  board.appendChild(center);
 }
 
 function darken(hex) {
@@ -1107,7 +1125,7 @@ function rollDice() {
 
 function movePlayer(steps) {
   const team = G.teams[G.currentTeam];
-  const newPos = Math.min(team.pos + steps, 35);
+  const newPos = Math.min(team.pos + steps, 36);
   let current = team.pos;
   const interval = setInterval(() => {
     current = Math.min(current + 1, newPos);
@@ -1331,13 +1349,13 @@ function applyCardEffect(card, type, team) {
   addLog(`${team.char.emoji} ${team.name} 抽到${type==='chance'?'機會':'命運'}卡：${card.emoji} ${card.label||card.text.split('\n')[0]}`);
   switch(card.effect) {
     case 'move': {
-      const newPos = Math.max(1, Math.min(35, team.pos + card.val));
+      const newPos = Math.max(1, Math.min(36, team.pos + card.val));
       team.pos = newPos;
       renderTokens();
       highlightSquare(newPos);
       addLog(`  → 移動到第 ${newPos} 格`);
       renderScoreboard();
-      if (newPos === 35) { setTimeout(() => landOnSquare(35), 600); return; }
+      if (newPos === 36) { setTimeout(() => landOnSquare(36), 600); return; }
       if (card.val !== 0) { setTimeout(() => landOnSquare(newPos), 800); return; }
       break;
     }

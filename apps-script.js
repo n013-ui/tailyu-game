@@ -33,7 +33,7 @@ function setupSheets() {
   // ── 題目設定 ──
   const q = ss.getSheetByName('題目設定');
   // 舊格式（欄數不足）或格數 < 36（含標題列）就清除重建
-  const oldFormat = q.getLastRow() === 0 || q.getLastColumn() < 8 || q.getLastRow() < 36;
+  const oldFormat = q.getLastRow() === 0 || q.getLastColumn() < 8 || q.getLastRow() < 37;
   if (oldFormat) {
     q.clearContents();
     q.appendRow(['關卡號','類型','名稱','Emoji','題目1','題目2','題目3','題目4','分數','顏色']);
@@ -235,7 +235,9 @@ function setupSheets() {
        '用台語說出端午節的習俗！\n（吃粽子、龍舟競賽、掛菖蒲）各說一句！',
        10,'#2b6cb0'],
 
-      [35,'end','終　點','🏆',
+      [35,'chance','機　會','⭐','抽一張機會卡！','','','', 0,'#b7791f'],
+
+      [36,'end','終　點','🏆',
        '恭喜到達終點！\n請用台語說：\n「多謝！咱攏是台語高手！」\n大家一起鼓掌！',
        '','','', 20,'#b7791f'],
     ].forEach(row => q.appendRow(row));
