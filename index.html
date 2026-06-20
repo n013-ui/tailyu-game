@@ -90,7 +90,8 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 /* ── BOARD ── */
 .board-wrap{flex:1;padding:12px;display:flex;align-items:center;justify-content:center;min-height:0;overflow:auto}
 /* ── 大富翁環狀棋盤（橫向 3:2，上下 12 格，左右 8 格含角） ── */
-.board{display:grid;grid-template-columns:1.6fr repeat(10,1fr) 1.6fr;grid-template-rows:1.6fr repeat(6,1fr) 1.6fr;gap:3px;width:100%;max-width:min(96vw,960px);aspect-ratio:3/2}
+/* 以螢幕高度為基準決定尺寸，讓左右欄格子取得足夠高度 */
+.board{display:grid;grid-template-columns:1.6fr repeat(10,1fr) 1.6fr;grid-template-rows:repeat(8,1fr);gap:3px;width:min(96vw,calc((100dvh - 72px) * 3 / 2),1140px);aspect-ratio:3/2}
 .board-center{grid-column:2/12;grid-row:2/8;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:radial-gradient(ellipse at center,#1a3a6e 0%,#0f3460 60%,#0a2040 100%);border-radius:10px;border:2px solid rgba(246,201,14,.35);text-align:center;gap:6px;padding:10px 8px;overflow-y:auto;overflow-x:hidden;box-shadow:inset 0 0 40px rgba(0,0,0,.4)}
 .sq{border-radius:6px;padding:2px 2px 22px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;cursor:default;border:2px solid rgba(255,255,255,.1);transition:all .2s;min-width:0;overflow:hidden}
 .sq:hover{border-color:rgba(255,255,255,.4);transform:scale(1.04);z-index:5}
@@ -310,7 +311,7 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
 /* Mobile tweaks */
 @media(max-width:900px){
   .board-wrap{min-height:0}
-  .board{max-width:min(98vw,calc((100vh - 180px) * 3/2))}
+  .board{width:min(98vw,calc((100dvh - 140px) * 3/2))}
   .sq .sq-emoji{font-size:1.3rem}
   .sq .sq-name{font-size:.6rem}
   .sq .sq-num{font-size:.65rem}
