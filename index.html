@@ -1607,8 +1607,8 @@ async function loadQuestionsFromSheets() {
   try {
     const res = await fetch(APPS_SCRIPT_URL + '?action=getQuestions');
     const data = await res.json();
-    if (data.questions && data.questions.length) {
-      // 試算表已是 4 題格式：直接覆蓋本地備用題目
+    if (data.questions && data.questions.length >= G.squares.length) {
+      // 試算表題數 >= 本機題數才覆蓋，避免舊版資料把新格子蓋掉
       G.squares = data.questions;
       renderBoard();
       renderTokens();
