@@ -521,6 +521,10 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
     </div>
     <div class="card-content" id="cm-content" style="display:none"></div>
     <div class="card-effect" id="cm-effect" style="display:none"></div>
+    <div id="cm-team-pick" style="display:none;padding:0 20px 16px">
+      <div style="font-size:.8rem;color:var(--muted);text-align:center;margin-bottom:8px">選擇要贈送的組別：</div>
+      <div id="cm-team-pick-btns" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
     <button class="btn-card-ok" id="cm-ok" onclick="confirmCard()" style="display:none">確認，繼續遊戲</button>
   </div>
 </div>
@@ -1339,7 +1343,26 @@ function flipCard(card, type, team) {
     document.getElementById('cm-content').style.display = '';
     document.getElementById('cm-effect').textContent = '效果：' + effectText;
     document.getElementById('cm-effect').style.display = '';
-    document.getElementById('cm-ok').style.display = 'block';
+    if (card.effect === 'give_score') {
+      // 顯示選組按鈕，隱藏一般確認鈕
+      const pickEl = document.getElementById('cm-team-pick');
+      const btnsEl = document.getElementById('cm-team-pick-btns');
+      btnsEl.innerHTML = '';
+      G.teams.forEach((t, idx) => {
+        if (idx === G.currentTeam) return; // 不能選自己
+        const btn = document.createElement('button');
+        btn.style.cssText = 'padding:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:var(--text);font-size:.9rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px';
+        btn.innerHTML = `<span style="font-size:1.3rem">${t.char.emoji}</span><span>${t.name}</span><span style="margin-left:auto;color:var(--gold)">+${card.val} 分</span>`;
+        btn.style.borderColor = t.color;
+        btn.onclick = () => giveScoreToTeam(card, idx);
+        btnsEl.appendChild(btn);
+      });
+      pickEl.style.display = '';
+      document.getElementById('cm-ok').style.display = 'none';
+    } else {
+      document.getElementById('cm-team-pick').style.display = 'none';
+      document.getElementById('cm-ok').style.display = 'block';
+    }
   }, 400);
 }
 
@@ -1356,6 +1379,18 @@ function getEffectLabel(card, type, team) {
     case 'bonus_task': return '特別表演任務';
     default: return card.label || '';
   }
+}
+
+function giveScoreToTeam(card, recipientIdx) {
+  const giver = G.teams[G.currentTeam];
+  const recipient = G.teams[recipientIdx];
+  recipient.score += card.val;
+  addLog(`${giver.char.emoji} ${giver.name} 贈送 ${card.val} 分給 ${recipient.char.emoji} ${recipient.name}`);
+  toast(`🤝 ${recipient.name} 獲得 ${card.val} 分！`);
+  renderScoreboard();
+  closeAllModals();
+  G.pendingCard = null;
+  nextTurn();
 }
 
 function confirmCard() {
@@ -1409,14 +1444,7 @@ function applyCardEffect(card, type, team) {
       return;
     }
     case 'give_score':
-      addLog(`  → ${team.name} 選擇贈送 ${card.val} 分`);
-      toast('🤝 選擇一組贈送 ' + card.val + ' 分（請老師確認）');
-      // Simple: give to 2nd place team
-      { const sorted = [...G.teams].sort((a,b)=>b.pos-a.pos);
-        const recipient = sorted.find(t => t !== team);
-        if (recipient) { recipient.score += card.val; addLog(`  → ${recipient.name} 獲得 ${card.val} 分`); }
-      }
-      renderScoreboard();
+      // 由 giveScoreToTeam() 處理，翻牌後顯示選組 UI
       break;
     case 'skip':
       team.skipTurns = (team.skipTurns || 0) + 1;
