@@ -1384,8 +1384,10 @@ function getEffectLabel(card, type, team) {
 function giveScoreToTeam(card, recipientIdx) {
   const giver = G.teams[G.currentTeam];
   const recipient = G.teams[recipientIdx];
+  const ctype = G.pendingCard ? G.pendingCard.type : 'chance';
+  addLog(`${giver.char.emoji} ${giver.name} 抽到${ctype==='chance'?'機會':'命運'}卡：${card.emoji} ${card.label||''}`);
   recipient.score += card.val;
-  addLog(`${giver.char.emoji} ${giver.name} 贈送 ${card.val} 分給 ${recipient.char.emoji} ${recipient.name}`);
+  addLog(`  → ${giver.name} 贈送 ${card.val} 分給 ${recipient.char.emoji} ${recipient.name}`);
   toast(`🤝 ${recipient.name} 獲得 ${card.val} 分！`);
   renderScoreboard();
   closeAllModals();
@@ -1454,12 +1456,16 @@ function applyCardEffect(card, type, team) {
     case 'swap_first': {
       const first = G.teams.reduce((a,b) => (a.pos > b.pos || (a.pos===b.pos && a.score>b.score)) ? a : b);
       if (first !== team) {
-        const tmpPos = team.pos; const tmpScore = team.score;
-        team.pos = first.pos; team.score = first.score;
-        first.pos = tmpPos; first.score = tmpScore;
+        // 只交換位置，不交換分數
+        const tmpPos = team.pos;
+        team.pos = first.pos;
+        first.pos = tmpPos;
         addLog(`  → ${team.name} 與 ${first.name} 交換位置`);
         renderTokens(); renderScoreboard();
         toast(`🔀 ${team.name} 與 ${first.name} 換位置！`);
+      } else {
+        addLog(`  → ${team.name} 已是第一名，效果無效`);
+        toast('🔀 已是第一名，沒有效果！');
       }
       break;
     }
