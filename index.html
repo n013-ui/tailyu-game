@@ -978,8 +978,11 @@ function resumeSave(idx) {
   G.finalRoundTeamsLeft = state.finalRoundTeamsLeft || [];
   G.phase      = 'roll';
   G.rolling    = false;
+  G.pendingCard = null;
+  closeAllModals();
   showScreen('game');
   document.getElementById('gh-class').textContent = `🎲 台語大富翁 - ${G.classId}`;
+  document.getElementById('roll-btn').disabled = false;
   renderBoard();
   renderTokens();
   renderScoreboard();
@@ -1344,21 +1347,29 @@ function flipCard(card, type, team) {
     document.getElementById('cm-effect').textContent = '效果：' + effectText;
     document.getElementById('cm-effect').style.display = '';
     if (card.effect === 'give_score') {
-      // 顯示選組按鈕，隱藏一般確認鈕
-      const pickEl = document.getElementById('cm-team-pick');
-      const btnsEl = document.getElementById('cm-team-pick-btns');
-      btnsEl.innerHTML = '';
-      G.teams.forEach((t, idx) => {
-        if (idx === G.currentTeam) return; // 不能選自己
-        const btn = document.createElement('button');
-        btn.style.cssText = 'padding:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:var(--text);font-size:.9rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px';
-        btn.innerHTML = `<span style="font-size:1.3rem">${t.char.emoji}</span><span>${t.name}</span><span style="margin-left:auto;color:var(--gold)">+${card.val} 分</span>`;
-        btn.style.borderColor = t.color;
-        btn.onclick = () => giveScoreToTeam(card, idx);
-        btnsEl.appendChild(btn);
-      });
-      pickEl.style.display = '';
-      document.getElementById('cm-ok').style.display = 'none';
+      const otherTeams = G.teams.filter((_, idx) => idx !== G.currentTeam);
+      if (otherTeams.length === 0) {
+        // 只有 1 組：無法贈送，直接顯示確認鈕跳過
+        document.getElementById('cm-team-pick').style.display = 'none';
+        document.getElementById('cm-effect').textContent = '效果：只有一組，無法贈送，跳過';
+        document.getElementById('cm-ok').style.display = 'block';
+      } else {
+        // 顯示選組按鈕，隱藏一般確認鈕
+        const pickEl = document.getElementById('cm-team-pick');
+        const btnsEl = document.getElementById('cm-team-pick-btns');
+        btnsEl.innerHTML = '';
+        G.teams.forEach((t, idx) => {
+          if (idx === G.currentTeam) return;
+          const btn = document.createElement('button');
+          btn.style.cssText = 'padding:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:var(--text);font-size:.9rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px';
+          btn.innerHTML = `<span style="font-size:1.3rem">${t.char.emoji}</span><span>${t.name}</span><span style="margin-left:auto;color:var(--gold)">+${card.val} 分</span>`;
+          btn.style.borderColor = t.color;
+          btn.onclick = () => giveScoreToTeam(card, idx);
+          btnsEl.appendChild(btn);
+        });
+        pickEl.style.display = '';
+        document.getElementById('cm-ok').style.display = 'none';
+      }
     } else {
       document.getElementById('cm-team-pick').style.display = 'none';
       document.getElementById('cm-ok').style.display = 'block';
@@ -1610,10 +1621,12 @@ function restartGame() {
   G.currentTeam = 0;
   G.phase = 'roll';
   G.rolling = false;
+  G.pendingCard = null;
   G.log = [];
   G.squareQuestionsUsed = {};
   G.finalRound = false;
   G.finalRoundTeamsLeft = [];
+  closeAllModals();
   showScreen('game');
   renderBoard();
   renderTokens();
