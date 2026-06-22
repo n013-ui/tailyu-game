@@ -1228,9 +1228,8 @@ function pickQuestion(sq) {
   const key = sq.n;
   if (!G.squareQuestionsUsed[key]) G.squareQuestionsUsed[key] = [];
   const used = G.squareQuestionsUsed[key];
-  let pool = sq.questions.map((_,i) => i).filter(i => !used.includes(i));
-  if (pool.length === 0) { G.squareQuestionsUsed[key] = []; pool = sq.questions.map((_,i) => i); }
-  const idx = pool[Math.floor(Math.random() * pool.length)];
+  const idx = used.length < sq.questions.length ? used.length : 0;
+  if (idx === 0) G.squareQuestionsUsed[key] = [];
   G.squareQuestionsUsed[key].push(idx);
   return sq.questions[idx];
 }
