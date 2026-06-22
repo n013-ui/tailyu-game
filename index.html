@@ -1399,7 +1399,7 @@ function flipCard(card, type, team) {
           if (idx === G.currentTeam) return;
           const btn = document.createElement('button');
           btn.style.cssText = 'padding:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:var(--text);font-size:.9rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px';
-          btn.innerHTML = `<span style="font-size:1.3rem">${t.char.emoji}</span><span>${t.name}</span><span style="margin-left:auto;color:var(--gold)">前進 ${steps} 格</span>`;
+          btn.innerHTML = `<span style="font-size:1.3rem">${t.char.emoji}</span><span>${t.name}<span style="font-size:.75rem;color:var(--muted);margin-left:6px">第 ${t.pos} 格</span></span><span style="margin-left:auto;color:var(--gold)">前進 ${steps} 格</span>`;
           btn.style.borderColor = t.color;
           btn.onclick = () => giveMoveToTeam(card, idx);
           btnsEl.appendChild(btn);
