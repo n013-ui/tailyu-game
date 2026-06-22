@@ -1190,7 +1190,7 @@ function rollDice() {
   dice.addEventListener('animationend', function handler() {
     dice.classList.remove('rolling');
     dice.style.transition = 'transform .3s ease';
-    dice.style.transform = finalTransform;
+    dice.style.transform = 'rotateX(720deg) rotateY(720deg)';
     dice.removeEventListener('animationend', handler);
     document.getElementById('dice-num').textContent = result;
     addLog(`${team.char.emoji} ${team.name} 擲出 ${result} 點`);
