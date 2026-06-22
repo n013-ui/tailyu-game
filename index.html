@@ -1156,12 +1156,12 @@ function showSquareInfo(n) {
 
 // Face orientations: value → CSS transform to face viewer
 const DICE_ORIENTATIONS = {
-  1: 'rotateX(0deg) rotateY(0deg)',
-  2: 'rotateX(0deg) rotateY(-90deg)',
-  3: 'rotateX(-90deg) rotateY(0deg)',
-  4: 'rotateX(90deg) rotateY(0deg)',
-  5: 'rotateX(0deg) rotateY(90deg)',
-  6: 'rotateX(0deg) rotateY(180deg)',
+  1: 'rotateX(720deg) rotateY(720deg)',   // front  = 1 點
+  2: 'rotateX(720deg) rotateY(630deg)',   // right  = 2 點  (630 = 720-90)
+  3: 'rotateX(630deg) rotateY(720deg)',   // top    = 3 點  (630 = 720-90)
+  4: 'rotateX(720deg) rotateY(900deg)',   // back   = 4 點  (900 = 720+180)
+  5: 'rotateX(720deg) rotateY(810deg)',   // left   = 5 點  (810 = 720+90)
+  6: 'rotateX(810deg) rotateY(720deg)',   // bottom = 6 點  (810 = 720+90)
 };
 
 function rollDice() {
