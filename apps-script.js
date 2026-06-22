@@ -212,29 +212,35 @@ function setupSheets() {
 
   // ── 機會卡 ──
   const ch = ss.getSheetByName('機會卡');
-  if (ch.getLastRow() === 0) {
+  const chLastEffect = ch.getLastRow() > 1 ? String(ch.getRange(ch.getLastRow(),4,1,1).getValue()) : '';
+  const chOld = ch.getLastRow() === 0 || chLastEffect === 'score' || chLastEffect === 'give_score';
+  if (chOld) {
+    ch.clearContents();
     ch.appendRow(['編號','Emoji','卡片內容','效果類型','效果數值','效果說明']);
     [
       [1,'🍀','幸運之神眷顧！\n前進 2 格！','move',2,'前進 2 格'],
-      [2,'⭐','台語說得真棒！\n獲得 15 分！','score',15,'獲得 15 分'],
+      [2,'⭐','台語說得真棒！\n前進 2 格！','move',2,'前進 2 格'],
       [3,'🎲','再來一次！\n可以再擲一次骰子！','extra_roll',1,'再擲一次骰子'],
-      [4,'🌟','老師嘉獎！\n全部組別各獲得 5 分！','all_score',5,'全組各得 5 分'],
+      [4,'🌟','老師嘉獎！\n全部組別各前進 1 格！','all_move',1,'全組前進 1 格'],
       [5,'🚀','發現捷徑！\n直接傳送到第 8 格！','goto',8,'傳送到第 8 格'],
-      [6,'🤝','同學互助！\n選任一組也獲得 10 分！','give_score',10,'贈送 10 分'],
+      [6,'🤝','同學互助！\n選任一組前進 1 格！','give_move',1,'讓一組前進 1 格'],
     ].forEach(row => ch.appendRow(row));
   }
 
   // ── 命運卡 ──
   const fo = ss.getSheetByName('命運卡');
-  if (fo.getLastRow() === 0) {
+  const foLastEffect = fo.getLastRow() > 1 ? String(fo.getRange(fo.getLastRow(),4,1,1).getValue()) : '';
+  const foOld = fo.getLastRow() === 0 || foLastEffect === 'score' || foLastEffect === 'bonus_task';
+  if (foOld) {
+    fo.clearContents();
     fo.appendRow(['編號','Emoji','卡片內容','效果類型','效果數值','效果說明']);
     [
       [1,'😰','走錯路了！\n後退 2 格！','move',-2,'後退 2 格'],
-      [2,'😅','台語說錯了！\n失去 5 分！','score',-5,'失去 5 分'],
+      [2,'😅','台語說錯了！\n後退 2 格！','move',-2,'後退 2 格'],
       [3,'⏸','需要多加練習！\n跳過下一回合！','skip',1,'跳過一回合'],
       [4,'🔀','命運大逆轉！\n與目前第一名交換位置！','swap_first',0,'與第一名換位'],
       [5,'🎉','意外的好事！\n前進 3 格！','move',3,'前進 3 格'],
-      [6,'🎤','特別任務！\n用台語唱一句歌詞成功得 20 分！','bonus_task',20,'特別表演任務'],
+      [6,'🔀','命運大洗牌！\n選一組與你互換位置！','swap_choose',0,'選一組換位置'],
     ].forEach(row => fo.appendRow(row));
   }
 

@@ -493,8 +493,8 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
       <div class="modal-desc" id="tm-desc"></div>
       <div class="modal-pts" id="tm-pts"></div>
       <div class="modal-actions">
-        <button class="btn-complete" onclick="completeTask()">✓ 完成！得分</button>
-        <button class="btn-skip" onclick="skipTask()">✗ 跳過</button>
+        <button class="btn-complete" onclick="completeTask()">✓ 答對！留在此格</button>
+        <button class="btn-skip" onclick="skipTask()">✗ 答錯！退回</button>
       </div>
     </div>
   </div>
@@ -824,20 +824,20 @@ const SQUARES = [
 
 const CHANCE_CARDS = [
   {emoji:'🍀', text:'幸運之神眷顧！\n前進 2 格！',        effect:'move',       val:2,  label:'前進 2 格'},
-  {emoji:'⭐', text:'台語說得真棒！\n獲得 15 分！',        effect:'score',      val:15, label:'獲得 15 分'},
+  {emoji:'⭐', text:'台語說得真棒！\n前進 2 格！',         effect:'move',       val:2,  label:'前進 2 格'},
   {emoji:'🎲', text:'再來一次！\n可以再擲一次骰子！',      effect:'extra_roll', val:1,  label:'再擲一次骰子'},
-  {emoji:'🌟', text:'老師嘉獎！\n全部組別各獲得 5 分！',   effect:'all_score',  val:5,  label:'全組各得 5 分'},
+  {emoji:'🌟', text:'老師嘉獎！\n全部組別各前進 1 格！',   effect:'all_move',   val:1,  label:'全組前進 1 格'},
   {emoji:'🚀', text:'發現捷徑！\n直接傳送到第 8 格！',     effect:'goto',       val:8,  label:'傳送到第 8 格'},
-  {emoji:'🤝', text:'同學互助！\n選任一組也獲得 10 分！', effect:'give_score', val:10, label:'贈送 10 分給一組'},
+  {emoji:'🤝', text:'同學互助！\n選任一組前進 1 格！',    effect:'give_move',  val:1,  label:'讓一組前進 1 格'},
 ];
 
 const FORTUNE_CARDS = [
-  {emoji:'😰', text:'走錯路了！\n後退 2 格！',           effect:'move',        val:-2, label:'後退 2 格'},
-  {emoji:'😅', text:'台語說錯了！\n失去 5 分！',          effect:'score',       val:-5, label:'失去 5 分'},
-  {emoji:'⏸',  text:'需要多加練習！\n跳過下一回合！',     effect:'skip',        val:1,  label:'跳過一回合'},
-  {emoji:'🔀', text:'命運大逆轉！\n與目前第一名交換位置！',effect:'swap_first',  val:0,  label:'與第一名換位置'},
-  {emoji:'🎉', text:'意外的好事！\n前進 3 格！',          effect:'move',        val:3,  label:'前進 3 格'},
-  {emoji:'🎤', text:'特別任務！\n用台語唱一句歌詞\n成功得 20 分！', effect:'bonus_task', val:20, label:'特別任務'},
+  {emoji:'😰', text:'走錯路了！\n後退 2 格！',             effect:'move',        val:-2, label:'後退 2 格'},
+  {emoji:'😅', text:'台語說錯了！\n後退 2 格！',            effect:'move',        val:-2, label:'後退 2 格'},
+  {emoji:'⏸',  text:'需要多加練習！\n跳過下一回合！',       effect:'skip',        val:1,  label:'跳過一回合'},
+  {emoji:'🔀', text:'命運大逆轉！\n與目前第一名交換位置！', effect:'swap_first',  val:0,  label:'與第一名換位置'},
+  {emoji:'🎉', text:'意外的好事！\n前進 3 格！',            effect:'move',        val:3,  label:'前進 3 格'},
+  {emoji:'🔀', text:'命運大洗牌！\n選一組與你互換位置！',             effect:'swap_choose', val:0, label:'選一組換位置'},
 ];
 
 // ══════════════════════════════════
@@ -855,10 +855,9 @@ let G = {
   phase: 'roll',
   rolling: false,
   pendingCard: null,
+  prevPos: 1,
   log: [],
   squareQuestionsUsed: {},
-  finalRound: false,
-  finalRoundTeamsLeft: [],
   cfg: {
     url: APPS_SCRIPT_URL,
     sound: localStorage.getItem('cfg_sound') !== 'off',
@@ -974,8 +973,7 @@ function resumeSave(idx) {
   G.squares    = state.squares || [...SQUARES];
   G.log        = state.log || [];
   G.squareQuestionsUsed = state.squareQuestionsUsed || {};
-  G.finalRound = state.finalRound || false;
-  G.finalRoundTeamsLeft = state.finalRoundTeamsLeft || [];
+  G.prevPos = state.prevPos || 1;
   G.phase      = 'roll';
   G.rolling    = false;
   G.pendingCard = null;
@@ -1006,16 +1004,14 @@ function startGame() {
       score: 0,
       skipTurns: 0,
       finished: false,
-      finishOrder: null,
     });
   }
   G.currentTeam = 0;
   G.phase = 'roll';
   G.rolling = false;
+  G.prevPos = 1;
   G.log = [];
   G.squareQuestionsUsed = {};
-  G.finalRound = false;
-  G.finalRoundTeamsLeft = [];
   document.getElementById('gh-class').textContent = `🎲 台語大富翁 - ${classId}`;
   showScreen('game');
   renderBoard();
@@ -1122,6 +1118,7 @@ function rollDice() {
     nextTurn();
     return;
   }
+  G.prevPos = team.pos;
   G.rolling = true;
   document.getElementById('roll-btn').disabled = true;
   playSound('roll');
@@ -1169,7 +1166,7 @@ function movePlayer(steps) {
   }, 350);
 }
 
-function landOnSquare(n) {
+function landOnSquare(n, fromCard = false) {
   const sq = G.squares.find(s => s.n === n);
   if (!sq) { nextTurn(); return; }
   const team = G.teams[G.currentTeam];
@@ -1187,37 +1184,20 @@ function landOnSquare(n) {
   } else if (sq.type === 'start') {
     setTimeout(nextTurn, 800);
   } else if (sq.type === 'end') {
-    const doneCount = G.teams.filter(t => t.finished).length;
     team.finished = true;
-    team.finishOrder = doneCount + 1;
-    const orderBonus = [30, 20, 10, 0];
-    const bonus = orderBonus[doneCount] || 0;
-    team.score += sq.pts + bonus;
-    const bonusMsg = bonus > 0 ? `（含抵達獎勵 +${bonus}）` : '';
-    addLog(`🏁 ${team.name} 第 ${team.finishOrder} 個到達終點！+${sq.pts + bonus} 分 ${bonusMsg}`);
+    addLog(`🏆 ${team.name} 到達終點，獲勝！`);
     playSound('win');
     renderScoreboard();
     renderTokens();
-    const allDone = G.teams.every(t => t.finished);
-    if (allDone) {
-      setTimeout(showGameOver, 1200);
-      return;
-    }
-    // First team to finish: trigger Final Round for remaining teams
-    if (!G.finalRound) {
-      G.finalRound = true;
-      G.finalRoundTeamsLeft = G.teams.map((_,i) => i).filter(i => !G.teams[i].finished);
-      const names = G.finalRoundTeamsLeft.map(i => G.teams[i].name).join('、');
-      addLog(`🔔 最後一輪！${names} 各還有一次機會！`);
-      toast(`🏁 ${team.name} 到終點！最後一輪開始！${names} 各再一次！`);
-    } else {
-      toast(`🏁 ${team.name} 也到達終點了！`);
-    }
-    setTimeout(nextTurn, 2000);
+    setTimeout(showGameOver, 1200);
   } else {
-    // task, song, riddle
-    G.phase = 'task';
-    setTimeout(() => showTaskModal(sq), 500);
+    // task, song, riddle — 卡片移動不需答題
+    if (fromCard) {
+      setTimeout(nextTurn, 800);
+    } else {
+      G.phase = 'task';
+      setTimeout(() => showTaskModal(sq), 500);
+    }
   }
 }
 
@@ -1250,7 +1230,7 @@ function showTaskModal(sq) {
   document.getElementById('tm-title').textContent = sq.name;
   document.getElementById('tm-team').textContent = `${team.char.emoji} ${team.name} 的挑戰！`;
   document.getElementById('tm-desc').textContent = pickQuestion(sq);
-  document.getElementById('tm-pts').innerHTML = `完成可獲得 <span>${sq.pts}</span> 分`;
+  document.getElementById('tm-pts').innerHTML = `答對留在第 <span>${G.teams[G.currentTeam].pos}</span> 格，答錯退回第 <span>${G.prevPos}</span> 格`;
   const timerEl = document.getElementById('task-timer');
   timerEl.style.display = G.cfg.timer ? '' : 'none';
   stopTimer();
@@ -1263,11 +1243,10 @@ function completeTask() {
   stopTimer();
   const sq = currentSquare;
   const team = G.teams[G.currentTeam];
-  team.score += sq.pts;
-  addLog(`✓ ${team.name} 完成「${sq.name}」，+${sq.pts} 分`);
+  addLog(`✓ ${team.name} 答對「${sq.name}」，留在第 ${team.pos} 格`);
   closeAllModals();
   renderScoreboard();
-  toast(`${team.char.emoji} 完成！+${sq.pts} 分！`);
+  toast(`${team.char.emoji} 答對！留在第 ${team.pos} 格！`);
   playSound('success');
   G.phase = 'roll';
   setTimeout(nextTurn, 1200);
@@ -1277,11 +1256,15 @@ function skipTask() {
   stopTimer();
   const sq = currentSquare;
   const team = G.teams[G.currentTeam];
-  addLog(`✗ ${team.name} 跳過「${sq.name}」`);
+  const backTo = G.prevPos;
+  team.pos = backTo;
+  renderTokens();
+  addLog(`✗ ${team.name} 答錯「${sq.name}」，退回第 ${backTo} 格`);
   closeAllModals();
+  renderScoreboard();
   G.phase = 'roll';
-  toast(`已跳過，下一組！`);
-  setTimeout(nextTurn, 800);
+  toast(`✗ 答錯！退回第 ${backTo} 格！`);
+  setTimeout(nextTurn, 1200);
 }
 
 // ── Timer ──
@@ -1308,7 +1291,7 @@ function stopTimer() {
 function drawCard(type) {
   G.phase = 'card';
   const pool = type === 'chance' ? G.chanceCards : G.fortuneCards;
-  const card = pool[Math.floor(Math.random() * pool.length)];
+  const card = pool[5] || pool[Math.floor(Math.random() * pool.length)]; // DEBUG: 固定第六張
   G.pendingCard = {card, type};
   const team = G.teams[G.currentTeam];
   const overlay = document.getElementById('card-modal-overlay');
@@ -1345,25 +1328,51 @@ function flipCard(card, type, team) {
     document.getElementById('cm-content').style.display = '';
     document.getElementById('cm-effect').textContent = '效果：' + effectText;
     document.getElementById('cm-effect').style.display = '';
-    if (card.effect === 'give_score') {
+    if (card.effect === 'give_score' || card.effect === 'give_move') {
       const otherTeams = G.teams.filter((_, idx) => idx !== G.currentTeam);
       if (otherTeams.length === 0) {
-        // 只有 1 組：無法贈送，直接顯示確認鈕跳過
         document.getElementById('cm-team-pick').style.display = 'none';
         document.getElementById('cm-effect').textContent = '效果：只有一組，無法贈送，跳過';
         document.getElementById('cm-ok').style.display = 'block';
       } else {
-        // 顯示選組按鈕，隱藏一般確認鈕
         const pickEl = document.getElementById('cm-team-pick');
         const btnsEl = document.getElementById('cm-team-pick-btns');
         btnsEl.innerHTML = '';
+        const steps = card.val > 0 && card.val <= 10 ? card.val : 1;
         G.teams.forEach((t, idx) => {
           if (idx === G.currentTeam) return;
           const btn = document.createElement('button');
           btn.style.cssText = 'padding:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:var(--text);font-size:.9rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px';
-          btn.innerHTML = `<span style="font-size:1.3rem">${t.char.emoji}</span><span>${t.name}</span><span style="margin-left:auto;color:var(--gold)">+${card.val} 分</span>`;
+          btn.innerHTML = `<span style="font-size:1.3rem">${t.char.emoji}</span><span>${t.name}</span><span style="margin-left:auto;color:var(--gold)">前進 ${steps} 格</span>`;
           btn.style.borderColor = t.color;
-          btn.onclick = () => giveScoreToTeam(card, idx);
+          btn.onclick = () => giveMoveToTeam(card, idx);
+          btnsEl.appendChild(btn);
+        });
+        pickEl.style.display = '';
+        document.getElementById('cm-ok').style.display = 'none';
+      }
+    } else if (card.effect === 'swap_choose') {
+      const otherTeams = G.teams.filter((_, idx) => idx !== G.currentTeam);
+      if (otherTeams.length === 0) {
+        document.getElementById('cm-team-pick').style.display = 'none';
+        document.getElementById('cm-effect').textContent = '效果：只有一組，無法換位，跳過';
+        document.getElementById('cm-ok').style.display = 'block';
+      } else {
+        const pickEl = document.getElementById('cm-team-pick');
+        const btnsEl = document.getElementById('cm-team-pick-btns');
+        btnsEl.innerHTML = '';
+        const cur = G.teams[G.currentTeam];
+        const label = document.createElement('div');
+        label.style.cssText = 'font-size:.85rem;color:var(--muted);margin-bottom:4px;padding:0 2px';
+        label.textContent = `選一組與 ${cur.char.emoji} ${cur.name}（第 ${cur.pos} 格）換位置：`;
+        btnsEl.appendChild(label);
+        G.teams.forEach((t, idx) => {
+          if (idx === G.currentTeam) return;
+          const btn = document.createElement('button');
+          btn.style.cssText = 'padding:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:var(--text);font-size:.9rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px';
+          btn.innerHTML = `<span style="font-size:1.3rem">${t.char.emoji}</span><span>${t.name}</span><span style="margin-left:auto;color:var(--gold)">第 ${t.pos} 格</span>`;
+          btn.style.borderColor = t.color;
+          btn.onclick = () => swapWithTeam(card, idx);
           btnsEl.appendChild(btn);
         });
         pickEl.style.display = '';
@@ -1379,26 +1388,51 @@ function flipCard(card, type, team) {
 function getEffectLabel(card, type, team) {
   switch(card.effect) {
     case 'move':       return (card.val > 0 ? '前進' : '後退') + Math.abs(card.val) + ' 格';
-    case 'score':      return (card.val > 0 ? '+' : '') + card.val + ' 分';
+    case 'score':      return (card.val > 0 ? '前進 2 格' : '後退 1 格');
     case 'extra_roll': return '再擲一次骰子';
-    case 'all_score':  return '全組各 +' + card.val + ' 分';
+    case 'all_score':
+    case 'all_move':   return '全組各前進 ' + (card.effect === 'all_score' ? 1 : card.val) + ' 格';
     case 'goto':       return '移動到第 ' + card.val + ' 格';
-    case 'give_score': return '贈送 ' + card.val + ' 分給選定組別';
+    case 'give_score':
+    case 'give_move':  return '選一組前進 ' + (card.val > 0 && card.val <= 10 ? card.val : 1) + ' 格';
     case 'skip':       return '跳過下一回合';
-    case 'swap_first': return '與第一名互換位置';
-    case 'bonus_task': return '特別表演任務';
+    case 'swap_first':  return '與第一名互換位置';
+    case 'swap_choose': return '選一組互換位置';
+    case 'bonus_task':  return '完成任務前進 ' + (card.val > 0 && card.val <= 10 ? card.val : 3) + ' 格';
     default: return card.label || '';
   }
 }
 
-function giveScoreToTeam(card, recipientIdx) {
+function giveMoveToTeam(card, recipientIdx) {
   const giver = G.teams[G.currentTeam];
   const recipient = G.teams[recipientIdx];
   const ctype = G.pendingCard ? G.pendingCard.type : 'chance';
   addLog(`${giver.char.emoji} ${giver.name} 抽到${ctype==='chance'?'機會':'命運'}卡：${card.emoji} ${card.label||''}`);
-  recipient.score += card.val;
-  addLog(`  → ${giver.name} 贈送 ${card.val} 分給 ${recipient.char.emoji} ${recipient.name}`);
-  toast(`🤝 ${recipient.name} 獲得 ${card.val} 分！`);
+  const steps = card.val > 0 && card.val <= 10 ? card.val : 1;
+  const newPos = Math.min(36, recipient.pos + steps);
+  recipient.pos = newPos;
+  addLog(`  → ${giver.name} 讓 ${recipient.char.emoji} ${recipient.name} 前進 ${steps} 格到第 ${newPos} 格`);
+  toast(`🤝 ${recipient.name} 前進 ${steps} 格！`);
+  renderTokens();
+  renderScoreboard();
+  closeAllModals();
+  G.pendingCard = null;
+  if (newPos === 36) { setTimeout(() => { G.currentTeam = recipientIdx; landOnSquare(36, true); }, 600); return; }
+  nextTurn();
+}
+function giveScoreToTeam(card, recipientIdx) { giveMoveToTeam(card, recipientIdx); }
+
+function swapWithTeam(card, targetIdx) {
+  const cur = G.teams[G.currentTeam];
+  const tgt = G.teams[targetIdx];
+  const ctype = G.pendingCard ? G.pendingCard.type : 'fortune';
+  addLog(`${cur.char.emoji} ${cur.name} 抽到${ctype==='chance'?'機會':'命運'}卡：${card.emoji} ${card.label||''}`);
+  const tmpPos = cur.pos;
+  cur.pos = tgt.pos;
+  tgt.pos = tmpPos;
+  addLog(`  → ${cur.char.emoji} ${cur.name} 與 ${tgt.char.emoji} ${tgt.name} 互換位置（第 ${cur.pos} 格 ↔ 第 ${tgt.pos} 格）`);
+  toast(`🔀 ${cur.name} 與 ${tgt.name} 換位置！`);
+  renderTokens();
   renderScoreboard();
   closeAllModals();
   G.pendingCard = null;
@@ -1423,16 +1457,22 @@ function applyCardEffect(card, type, team) {
       highlightSquare(newPos);
       addLog(`  → 移動到第 ${newPos} 格`);
       renderScoreboard();
-      if (newPos === 36) { setTimeout(() => landOnSquare(36), 600); return; }
-      if (card.val !== 0) { setTimeout(() => landOnSquare(newPos), 800); return; }
+      if (newPos === 36) { setTimeout(() => landOnSquare(36, true), 600); return; }
+      if (card.val !== 0) { setTimeout(() => landOnSquare(newPos, true), 800); return; }
       break;
     }
-    case 'score':
-      team.score = Math.max(0, team.score + card.val);
-      addLog(`  → 分數 ${card.val > 0 ? '+' : ''}${card.val}`);
+    case 'score': {
+      // 舊版相容：分數效果改成前進/後退格
+      const mv = card.val > 0 ? 2 : -1;
+      const newPos2 = Math.max(1, Math.min(36, team.pos + mv));
+      team.pos = newPos2;
+      renderTokens(); highlightSquare(newPos2);
+      addLog(`  → ${mv > 0 ? '前進' : '後退'} ${Math.abs(mv)} 格，到第 ${newPos2} 格`);
       renderScoreboard();
-      toast(`${card.val > 0 ? '+' : ''}${card.val} 分！`);
-      break;
+      if (newPos2 === 36) { setTimeout(() => landOnSquare(36, true), 600); return; }
+      setTimeout(() => landOnSquare(newPos2, true), 800);
+      return;
+    }
     case 'extra_roll':
       G.phase = 'roll';
       G.rolling = false;
@@ -1441,22 +1481,29 @@ function applyCardEffect(card, type, team) {
       toast('🎲 再擲一次！');
       return;
     case 'all_score':
-      G.teams.forEach(t => { t.score += card.val; });
-      addLog(`  → 全組各 +${card.val} 分`);
-      renderScoreboard();
-      toast(`🌟 全組各 +${card.val} 分！`);
+    case 'all_move': {
+      const steps = card.effect === 'all_score' ? 1 : card.val;
+      G.teams.forEach(t => { t.pos = Math.min(36, t.pos + steps); });
+      addLog(`  → 全組各前進 ${steps} 格`);
+      renderTokens(); renderScoreboard();
+      toast(`🌟 全組各前進 ${steps} 格！`);
       break;
+    }
     case 'goto': {
       team.pos = card.val;
       renderTokens();
       highlightSquare(card.val);
       addLog(`  → 傳送到第 ${card.val} 格`);
       renderScoreboard();
-      setTimeout(() => landOnSquare(card.val), 800);
+      setTimeout(() => landOnSquare(card.val, true), 800);
       return;
     }
     case 'give_score':
-      // 由 giveScoreToTeam() 處理，翻牌後顯示選組 UI
+    case 'give_move':
+      // 由 giveMoveToTeam() 處理，翻牌後顯示選組 UI
+      break;
+    case 'swap_choose':
+      // 由 swapWithTeam() 處理，翻牌後顯示選組 UI
       break;
     case 'skip':
       team.skipTurns = (team.skipTurns || 0) + 1;
@@ -1464,9 +1511,8 @@ function applyCardEffect(card, type, team) {
       toast('⏸ 跳過下一回合！');
       break;
     case 'swap_first': {
-      const first = G.teams.reduce((a,b) => (a.pos > b.pos || (a.pos===b.pos && a.score>b.score)) ? a : b);
+      const first = G.teams.reduce((a,b) => a.pos > b.pos ? a : b);
       if (first !== team) {
-        // 只交換位置，不交換分數
         const tmpPos = team.pos;
         team.pos = first.pos;
         first.pos = tmpPos;
@@ -1491,19 +1537,26 @@ function applyCardEffect(card, type, team) {
 
 function completeBonusTask() {
   const team = G.teams[G.currentTeam];
-  team.score += 20;
-  addLog(`✓ ${team.name} 完成特別任務！+20 分`);
+  const card = G.pendingCard ? G.pendingCard.card : null;
+  const steps = (card && card.val > 0 && card.val <= 10) ? card.val : 3;
+  const newPos = Math.min(36, team.pos + steps);
+  team.pos = newPos;
+  addLog(`✓ ${team.name} 完成特別任務！前進 ${steps} 格到第 ${newPos} 格`);
   closeAllModals();
+  renderTokens();
   renderScoreboard();
-  toast(`🎤 完成特別任務！+20 分！`);
+  toast(`🎤 完成特別任務！前進 ${steps} 格！`);
   playSound('success');
   G.phase = 'roll';
+  G.pendingCard = null;
+  if (newPos === 36) { setTimeout(() => landOnSquare(36, true), 600); return; }
   setTimeout(nextTurn, 1200);
 }
 function skipBonusTask() {
   addLog(`✗ ${G.teams[G.currentTeam].name} 跳過特別任務`);
   closeAllModals();
   G.phase = 'roll';
+  G.pendingCard = null;
   setTimeout(nextTurn, 600);
 }
 
@@ -1511,19 +1564,7 @@ function nextTurn() {
   G.phase = 'roll';
   G.rolling = false;
   document.getElementById('roll-btn').disabled = false;
-  if (G.teams.every(t => t.finished)) { showGameOver(); return; }
-
-  if (G.finalRound) {
-    // Remove the team that just finished their final-round turn
-    const idx = G.finalRoundTeamsLeft.indexOf(G.currentTeam);
-    if (idx >= 0) G.finalRoundTeamsLeft.splice(idx, 1);
-    if (G.finalRoundTeamsLeft.length === 0) { showGameOver(); return; }
-    G.currentTeam = G.finalRoundTeamsLeft[0];
-    renderScoreboard();
-    updateTurnBanner();
-    renderLog();
-    return;
-  }
+  if (G.teams.some(t => t.finished)) { showGameOver(); return; }
 
   let next = (G.currentTeam + 1) % G.teams.length;
   let guard = 0;
@@ -1548,11 +1589,6 @@ function updateTurnBanner() {
     skipEl.style.color = '';
     skipEl.style.background = '';
     skipEl.style.display = '';
-  } else if (G.finalRound) {
-    skipEl.textContent = `🔔 最後一輪！剩 ${G.finalRoundTeamsLeft.length} 組`;
-    skipEl.style.color = '#f6c90e';
-    skipEl.style.background = 'rgba(246,201,14,.12)';
-    skipEl.style.display = '';
   } else {
     skipEl.style.display = 'none';
   }
@@ -1564,16 +1600,15 @@ function updateTurnBanner() {
 
 function renderScoreboard() {
   const sorted = [...G.teams].map((t,i)=>({...t,origIdx:i}))
-    .sort((a,b) => b.score !== a.score ? b.score - a.score : b.pos - a.pos);
+    .sort((a,b) => b.pos - a.pos);
   document.getElementById('scoreboard').innerHTML = sorted.map((t,rank) => `
     <div class="score-row${t.origIdx===G.currentTeam?' is-current':''}" style="border-left-color:${t.color}">
       <div style="font-size:.8rem;font-weight:700;color:var(--muted);width:16px;text-align:center">${rank+1}</div>
       <div class="sr-emoji" style="background:rgba(0,0,0,.3);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid ${t.color}">${t.char.emoji}</div>
       <div class="sr-info">
         <div class="sr-name" style="color:${t.color}">${esc(t.name)}</div>
-        <div class="sr-pos">${t.finished?`🏁 第${t.finishOrder}完成`:`第 ${t.pos} 格`}${t.skipTurns>0?' ⏸':''}${t.origIdx===G.currentTeam&&!t.finished?' ◀':''}</div>
+        <div class="sr-pos">${t.finished?'🏆 到達終點！':`第 ${t.pos} 格`}${t.skipTurns>0?' ⏸':''}${t.origIdx===G.currentTeam&&!t.finished?' ◀':''}</div>
       </div>
-      <div class="sr-score">${t.score}</div>
     </div>`).join('');
 }
 
@@ -1595,10 +1630,10 @@ function renderLog() {
 function showGameOver() {
   G.phase = 'end';
   playSound('win');
-  const sorted = [...G.teams].sort((a,b) => b.score !== a.score ? b.score - a.score : b.pos - a.pos);
-  const winner = sorted[0];
+  const winner = G.teams.find(t => t.finished) || [...G.teams].sort((a,b) => b.pos - a.pos)[0];
   document.getElementById('go-title').textContent = `🏆 ${winner.name} 獲勝！`;
   document.getElementById('go-sub').textContent = `恭喜 ${winner.char.emoji} ${winner.name}！你們是台語高手！`;
+  const sorted = [...G.teams].sort((a,b) => b.pos - a.pos);
   const medals = ['🥇','🥈','🥉',''];
   document.getElementById('go-rankings').innerHTML = `
     <h3>最終排名</h3>
@@ -1608,23 +1643,21 @@ function showGameOver() {
         <div class="rank-emoji">${t.char.emoji}</div>
         <div class="rank-info">
           <div class="rank-name" style="color:${t.color}">${esc(t.name)}</div>
-          <div class="rank-detail">第 ${t.pos} 格</div>
+          <div class="rank-detail">${t.finished ? '🏆 到達終點' : '第 ' + t.pos + ' 格'}</div>
         </div>
-        <div class="rank-score">${t.score} 分</div>
       </div>`).join('')}`;
   showScreen('gameover');
 }
 
 function restartGame() {
-  G.teams.forEach(t => { t.pos = 1; t.score = 0; t.skipTurns = 0; t.finished = false; t.finishOrder = null; });
+  G.teams.forEach(t => { t.pos = 1; t.score = 0; t.skipTurns = 0; t.finished = false; });
   G.currentTeam = 0;
   G.phase = 'roll';
   G.rolling = false;
   G.pendingCard = null;
   G.log = [];
   G.squareQuestionsUsed = {};
-  G.finalRound = false;
-  G.finalRoundTeamsLeft = [];
+  G.prevPos = 1;
   closeAllModals();
   showScreen('game');
   renderBoard();
@@ -1653,8 +1686,7 @@ function doSave() {
     squares: G.squares,
     log: G.log,
     squareQuestionsUsed: G.squareQuestionsUsed,
-    finalRound: G.finalRound,
-    finalRoundTeamsLeft: G.finalRoundTeamsLeft,
+    prevPos: G.prevPos,
   };
   // Save locally
   const saves = getLocalSaves();
