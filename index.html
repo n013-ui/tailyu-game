@@ -371,6 +371,10 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
   <div class="load-section" id="load-section" style="display:none">
     <h3>📂 讀取上次進度</h3>
     <div class="save-list" id="save-list"></div>
+    <div id="cloud-load-section" style="margin-top:10px">
+      <button onclick="fetchSheetsSaves()" style="width:100%;padding:7px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:var(--text);font-size:.82rem;cursor:pointer">☁️ 從 Google Sheets 載入存檔</button>
+      <div id="cloud-save-list" style="margin-top:6px;display:flex;flex-direction:column;gap:6px"></div>
+    </div>
   </div>
 
   <button class="btn-start" onclick="startGame()">🚀 開始遊戲！</button>
@@ -947,33 +951,75 @@ function loadLocalSaves() {
   const saves = getLocalSaves();
   const section = document.getElementById('load-section');
   const list = document.getElementById('save-list');
-  if (saves.length === 0) { section.style.display = 'none'; return; }
   section.style.display = '';
-  list.innerHTML = saves.map((s, i) => `
-    <div class="save-item">
-      <div class="si-info">
-        <span class="si-name">${esc(s.name)} - ${esc(s.classId)}</span>
-        <span class="si-time">${s.time}</span>
-      </div>
-      <button class="si-resume" onclick="resumeSave(${i})">繼續</button>
-    </div>`).join('');
+  if (saves.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:4px 0">尚無本機存檔</div>';
+  } else {
+    list.innerHTML = saves.map((s, i) => `
+      <div class="save-item">
+        <div class="si-info">
+          <span class="si-name">${esc(s.name)} - ${esc(s.classId)}</span>
+          <span class="si-time">${s.time}</span>
+        </div>
+        <button class="si-resume" onclick="resumeSave(${i})">繼續</button>
+      </div>`).join('');
+  }
 }
 
 function getLocalSaves() {
   try { return JSON.parse(localStorage.getItem('tl_saves') || '[]'); } catch(e) { return []; }
 }
 
-function resumeSave(idx) {
-  const saves = getLocalSaves();
-  if (!saves[idx]) return;
-  const state = saves[idx].state;
+let _cloudSaves = [];
+
+async function fetchSheetsSaves() {
+  const btn = document.querySelector('#cloud-load-section button');
+  const cloudList = document.getElementById('cloud-save-list');
+  if (btn) btn.textContent = '☁️ 載入中…';
+  cloudList.innerHTML = '';
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?action=listSaves');
+    const data = await res.json();
+    _cloudSaves = data.saves || [];
+    if (_cloudSaves.length === 0) {
+      cloudList.innerHTML = '<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:4px 0">試算表上無存檔</div>';
+    } else {
+      cloudList.innerHTML = _cloudSaves.map((s, i) => `
+        <div class="save-item">
+          <div class="si-info">
+            <span class="si-name">☁️ ${esc(s.name)} - ${esc(s.classId)}</span>
+            <span class="si-time">${s.time}</span>
+          </div>
+          <button class="si-resume" onclick="resumeCloudSave(${i})">繼續</button>
+        </div>`).join('');
+    }
+  } catch(e) {
+    cloudList.innerHTML = '<div style="color:#fc8181;font-size:.8rem;text-align:center;padding:4px 0">載入失敗，請確認 Sheets 連線</div>';
+  }
+  if (btn) btn.textContent = '☁️ 從 Google Sheets 載入存檔';
+}
+
+async function resumeCloudSave(idx) {
+  const meta = _cloudSaves[idx];
+  if (!meta) return;
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=loadProgress&classId=${encodeURIComponent(meta.classId)}&name=${encodeURIComponent(meta.name)}`);
+    const data = await res.json();
+    if (!data.success) { toast('☁️ 載入失敗：' + (data.error || '未知錯誤')); return; }
+    applyLoadedState(data.state);
+  } catch(e) {
+    toast('☁️ 載入失敗，請確認網路連線');
+  }
+}
+
+function applyLoadedState(state) {
   G.classId    = state.classId;
   G.teams      = state.teams;
   G.currentTeam = state.currentTeam;
   G.squares    = state.squares || [...SQUARES];
   G.log        = state.log || [];
   G.squareQuestionsUsed = state.squareQuestionsUsed || {};
-  G.prevPos = state.prevPos || 1;
+  G.prevPos    = state.prevPos || 1;
   G.phase      = 'roll';
   G.rolling    = false;
   G.pendingCard = null;
@@ -986,6 +1032,12 @@ function resumeSave(idx) {
   renderScoreboard();
   renderLog();
   updateTurnBanner();
+}
+
+function resumeSave(idx) {
+  const saves = getLocalSaves();
+  if (!saves[idx]) return;
+  applyLoadedState(saves[idx].state);
 }
 
 function startGame() {
@@ -1696,15 +1748,12 @@ function doSave() {
   localStorage.setItem('tl_saves', JSON.stringify(saves.slice(0,20)));
   const statusEl = document.getElementById('save-status');
   statusEl.className = 'save-status ok';
-  statusEl.textContent = '✓ 已儲存到瀏覽器！';
+  statusEl.textContent = '✓ 已儲存到瀏覽器，同步中…';
   addLog(`💾 進度已儲存：${name}`);
-  // Also try Sheets
-  if (G.cfg.url) {
-    saveToSheets(name, state).then(ok => {
-      if (ok) { statusEl.textContent = '✓ 已同步到 Google 試算表！'; }
-    });
-  }
-  setTimeout(closeAllModals, 1800);
+  saveToSheets(name, state).then(ok => {
+    statusEl.textContent = ok ? '✓ 已同步到 Google 試算表！' : '✓ 已儲存到瀏覽器（Sheets 同步失敗）';
+  });
+  setTimeout(closeAllModals, 2500);
 }
 
 async function saveToSheets(name, state) {
