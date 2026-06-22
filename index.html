@@ -1156,9 +1156,12 @@ function showSquareInfo(n) {
 
 // Face orientations: value → CSS transform to face viewer
 const DICE_ORIENTATIONS = {
-  1: 'rotateX(0deg) rotateY(0deg)',       // front face
-  2: 'rotateX(0deg) rotateY(-90deg)',     // right face toward viewer (rotate left)
-  3: 'rotateX(-90deg) rotateY(0deg)',     // top face toward viewer (rotate down)
+  1: 'rotateX(0deg) rotateY(0deg)',
+  2: 'rotateX(0deg) rotateY(-90deg)',
+  3: 'rotateX(-90deg) rotateY(0deg)',
+  4: 'rotateX(90deg) rotateY(0deg)',
+  5: 'rotateX(0deg) rotateY(90deg)',
+  6: 'rotateX(0deg) rotateY(180deg)',
 };
 
 function rollDice() {
@@ -1174,7 +1177,8 @@ function rollDice() {
   G.rolling = true;
   document.getElementById('roll-btn').disabled = true;
   playSound('roll');
-  const result = Math.floor(Math.random() * 3) + 1;
+  const r = Math.random() * 100;
+  const result = r < 20 ? 1 : r < 50 ? 2 : r < 80 ? 3 : r < 90 ? 4 : r < 95 ? 5 : 6;
   const dice = document.getElementById('dice');
   const finalTransform = DICE_ORIENTATIONS[result];
   dice.style.setProperty('--dice-final', finalTransform);
