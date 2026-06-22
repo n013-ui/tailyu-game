@@ -414,7 +414,7 @@ body{font-family:'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;background:v
           <div class="dice-area">
             <div class="dice-scene">
               <div class="dice" id="dice">
-                <div class="die-face face-front">
+                <div class="die-face face-front" id="dice-face-front">
                   <div class="pips"><div class="pip c"></div></div>
                 </div>
                 <div class="die-face face-right">
@@ -1155,13 +1155,13 @@ function showSquareInfo(n) {
 // ══════════════════════════════════
 
 // Face orientations: value → CSS transform to face viewer
-const DICE_ORIENTATIONS = {
-  1: 'rotateX(720deg) rotateY(720deg)',   // front  = 1 點
-  2: 'rotateX(720deg) rotateY(630deg)',   // right  = 2 點  (630 = 720-90)
-  3: 'rotateX(630deg) rotateY(720deg)',   // top    = 3 點  (630 = 720-90)
-  4: 'rotateX(720deg) rotateY(900deg)',   // back   = 4 點  (900 = 720+180)
-  5: 'rotateX(720deg) rotateY(810deg)',   // left   = 5 點  (810 = 720+90)
-  6: 'rotateX(810deg) rotateY(720deg)',   // bottom = 6 點  (810 = 720+90)
+const DICE_PIPS = {
+  1: '<div class="pips"><div class="pip c"></div></div>',
+  2: '<div class="pips"><div class="pip tl"></div><div class="pip br"></div></div>',
+  3: '<div class="pips"><div class="pip tl"></div><div class="pip c"></div><div class="pip br"></div></div>',
+  4: '<div class="pips"><div class="pip tl"></div><div class="pip tr"></div><div class="pip bl"></div><div class="pip br"></div></div>',
+  5: '<div class="pips"><div class="pip tl"></div><div class="pip tr"></div><div class="pip c"></div><div class="pip bl"></div><div class="pip br"></div></div>',
+  6: '<div class="pips"><div class="pip tl"></div><div class="pip tr"></div><div class="pip ml"></div><div class="pip mr"></div><div class="pip bl"></div><div class="pip br"></div></div>',
 };
 
 function rollDice() {
@@ -1179,9 +1179,10 @@ function rollDice() {
   playSound('roll');
   const r = Math.random() * 100;
   const result = r < 20 ? 1 : r < 50 ? 2 : r < 80 ? 3 : r < 90 ? 4 : r < 95 ? 5 : 6;
+  // 動畫前先把正面換成正確點數，全部結果都停在正面
+  document.getElementById('dice-face-front').innerHTML = DICE_PIPS[result];
   const dice = document.getElementById('dice');
-  const finalTransform = DICE_ORIENTATIONS[result];
-  dice.style.setProperty('--dice-final', finalTransform);
+  dice.style.setProperty('--dice-final', 'rotateX(720deg) rotateY(720deg)');
   dice.style.transition = 'none';
   dice.style.transform = 'rotateX(0deg) rotateY(0deg)';
   void dice.offsetWidth;
